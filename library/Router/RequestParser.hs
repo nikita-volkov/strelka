@@ -10,6 +10,12 @@ newtype RequestParser a =
   RequestParser (ReaderT Wai.Request (StateT [Text] (ExceptT Text IO)) a)
   deriving (Functor, Applicative, Monad, Alternative, MonadPlus)
 
+instance Monoid (RequestParser a) where
+  mempty =
+    RequestParser empty
+  mappend (RequestParser reader1) (RequestParser reader2) =
+    RequestParser (reader1 <|> reader2)
+
 requestParser :: Wai.Request -> RequestParser a -> IO (Either Text a)
 requestParser request (RequestParser reader) =
   runReaderT reader request & \state -> evalStateT state (Wai.pathInfo request) & runExceptT
