@@ -1,4 +1,4 @@
-module Router where
+module Router.RequestParser where
 
 import Router.Prelude
 import qualified Network.Wai as Wai
@@ -6,26 +6,26 @@ import qualified Data.Attoparsec.Text
 import qualified Router.Wai.Responses as Wai.Responses
 
 
-newtype Route m a =
-  Route (ReaderT Wai.Request (StateT [Text] (ExceptT Text m)) a)
+newtype RequestParser m a =
+  RequestParser (ReaderT Wai.Request (StateT [Text] (ExceptT Text m)) a)
   deriving (Functor, Applicative, Monad, Alternative, MonadPlus)
 
-route :: Monad m => Wai.Request -> Route m a -> m (Either Text a)
-route request (Route reader) =
+requestParser :: Monad m => Wai.Request -> RequestParser m a -> m (Either Text a)
+requestParser request (RequestParser reader) =
   runReaderT reader request & \state -> evalStateT state (Wai.pathInfo request) & runExceptT
 
-routeApplication :: Monad m => (forall a. m a -> IO a) -> Route m Wai.Response -> Wai.Application
-routeApplication mToIO x =
+requestParserApplication :: Monad m => (forall a. m a -> IO a) -> RequestParser m Wai.Response -> Wai.Application
+requestParserApplication mToIO x =
   \request responseHandler ->
-    mToIO (route request x) >>= responseHandler . either (const Wai.Responses.notFound) id
+    mToIO (requestParser request x) >>= responseHandler . either (const Wai.Responses.notFound) id
 
-hoist :: (forall a. m1 a -> m2 a) -> (Route m1 a -> Route m2 a)
+hoist :: (forall a. m1 a -> m2 a) -> (RequestParser m1 a -> RequestParser m2 a)
 hoist transformation =
   undefined
 
-failure :: Monad m => Text -> Route m a
+failure :: Monad m => Text -> RequestParser m a
 failure message =
-  Route $
+  RequestParser $
   lift $
   lift $
   ExceptT $
@@ -35,9 +35,9 @@ failure message =
 
 -- |
 -- Consume the next segment of the path.
-segment :: Monad m => Route m Text
+segment :: Monad m => RequestParser m Text
 segment =
-  Route $
+  RequestParser $
   lift $
   StateT $
   \case
@@ -46,7 +46,7 @@ segment =
     _ ->
       ExceptT (return (Left "No segments left"))
 
-segmentIs :: Monad m => Text -> Route m ()
+segmentIs :: Monad m => Text -> RequestParser m ()
 segmentIs expected =
   segment >>=
   \actual ->
@@ -60,20 +60,20 @@ segmentIs expected =
 
 -- |
 -- Consume the next path segment and parse it using Attoparsec.
-parseSegment :: Monad m => Data.Attoparsec.Text.Parser a -> Route m a
+parseSegment :: Monad m => Data.Attoparsec.Text.Parser a -> RequestParser m a
 parseSegment parser =
   segment >>=
   liftEither . either (Left . fromString) Right . Data.Attoparsec.Text.parseOnly parser
 
-method :: Route m Method
+method :: RequestParser m Method
 method =
   undefined
 
-liftEither :: Either Text a -> Route m a
+liftEither :: Either Text a -> RequestParser m a
 liftEither =
   undefined
 
-liftMaybe :: Maybe a -> Route m a
+liftMaybe :: Maybe a -> RequestParser m a
 liftMaybe =
   undefined
 
