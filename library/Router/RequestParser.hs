@@ -8,7 +8,7 @@ import qualified Router.Wai.Responses as Wai.Responses
 
 newtype RequestParser a =
   RequestParser (ReaderT Wai.Request (StateT [Text] (ExceptT Text IO)) a)
-  deriving (Functor, Applicative, Monad, Alternative, MonadPlus)
+  deriving (Functor, Applicative, Monad, Alternative, MonadPlus, MonadIO)
 
 instance Monoid (RequestParser a) where
   mempty =
