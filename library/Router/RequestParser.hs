@@ -6,24 +6,20 @@ import qualified Data.Attoparsec.Text
 import qualified Router.Wai.Responses as Wai.Responses
 
 
-newtype RequestParser m a =
-  RequestParser (ReaderT Wai.Request (StateT [Text] (ExceptT Text m)) a)
+newtype RequestParser a =
+  RequestParser (ReaderT Wai.Request (StateT [Text] (ExceptT Text IO)) a)
   deriving (Functor, Applicative, Monad, Alternative, MonadPlus)
 
-requestParser :: Monad m => Wai.Request -> RequestParser m a -> m (Either Text a)
+requestParser :: Wai.Request -> RequestParser a -> IO (Either Text a)
 requestParser request (RequestParser reader) =
   runReaderT reader request & \state -> evalStateT state (Wai.pathInfo request) & runExceptT
 
-requestParserApplication :: Monad m => (forall a. m a -> IO a) -> RequestParser m Wai.Response -> Wai.Application
-requestParserApplication mToIO x =
+requestParserApplication :: RequestParser Wai.Response -> Wai.Application
+requestParserApplication x =
   \request responseHandler ->
-    mToIO (requestParser request x) >>= responseHandler . either (const Wai.Responses.notFound) id
+    requestParser request x >>= responseHandler . either (const Wai.Responses.notFound) id
 
-hoist :: (forall a. m1 a -> m2 a) -> (RequestParser m1 a -> RequestParser m2 a)
-hoist transformation =
-  undefined
-
-failure :: Monad m => Text -> RequestParser m a
+failure :: Text -> RequestParser a
 failure message =
   RequestParser $
   lift $
@@ -35,7 +31,7 @@ failure message =
 
 -- |
 -- Consume the next segment of the path.
-segment :: Monad m => RequestParser m Text
+segment :: RequestParser Text
 segment =
   RequestParser $
   lift $
@@ -46,7 +42,7 @@ segment =
     _ ->
       ExceptT (return (Left "No segments left"))
 
-segmentIs :: Monad m => Text -> RequestParser m ()
+segmentIs :: Text -> RequestParser ()
 segmentIs expected =
   segment >>=
   \actual ->
@@ -60,20 +56,20 @@ segmentIs expected =
 
 -- |
 -- Consume the next path segment and parse it using Attoparsec.
-parseSegment :: Monad m => Data.Attoparsec.Text.Parser a -> RequestParser m a
+parseSegment :: Data.Attoparsec.Text.Parser a -> RequestParser a
 parseSegment parser =
   segment >>=
   liftEither . either (Left . fromString) Right . Data.Attoparsec.Text.parseOnly parser
 
-method :: RequestParser m Method
+method :: RequestParser Method
 method =
   undefined
 
-liftEither :: Either Text a -> RequestParser m a
+liftEither :: Either Text a -> RequestParser a
 liftEither =
   undefined
 
-liftMaybe :: Maybe a -> RequestParser m a
+liftMaybe :: Maybe a -> RequestParser a
 liftMaybe =
   undefined
 
