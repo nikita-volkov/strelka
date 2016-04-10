@@ -1,6 +1,7 @@
 module Router.Prelude
 ( 
   module Exports,
+  lowerCaseBytes_iso_8859_1,
 )
 where
 
@@ -44,3 +45,22 @@ import Network.Wai as Exports (Request, Response)
 -------------------------
 import Network.HTTP.Types as Exports
 
+-- Utils
+-------------------------
+import qualified Data.ByteString as ByteString
+
+-- |
+-- Lowercase according to ISO-8859-1.
+lowerCaseBytes_iso_8859_1 :: ByteString -> ByteString
+lowerCaseBytes_iso_8859_1 =
+  ByteString.map byteTransformation
+  where
+    byteTransformation w =
+      if isTransformable w
+        then w + 32
+        else w
+      where
+        isTransformable w =
+          65 <= w && w <=  90 ||
+          192 <= w && w <= 214 ||
+          216 <= w && w <= 222

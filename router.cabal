@@ -3,6 +3,7 @@ name:
 version:
   0.1
 synopsis:
+  Extremely flexible and composable WAI router
 homepage:
   https://github.com/nikita-volkov/router
 bug-reports:
@@ -38,6 +39,7 @@ library
     Router.Wai.Responses
     Router.HeadersMap
     Router.QueryMap
+    Router.RequestProperties
   exposed-modules:
     Router.RequestParser
   default-extensions:
@@ -48,7 +50,9 @@ library
     http-types >= 0.9 && < 0.10,
     wai == 3.*,
     attoparsec >= 0.10 && < 0.14,
+    bytestring-tree-builder >= 0.2.5 && < 0.3,
     bytestring >= 0.10 && < 0.11,
+    case-insensitive >= 1 && < 2,
     text >= 1 && < 2,
     unordered-containers >= 0.2 && < 0.3,
     -- 

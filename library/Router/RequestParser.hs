@@ -3,11 +3,15 @@ module Router.RequestParser where
 import Router.Prelude
 import qualified Network.Wai as Wai
 import qualified Data.Attoparsec.Text
+import qualified ByteString.TreeBuilder
+import qualified Data.ByteString as ByteString
+import qualified Data.ByteString.Lazy as ByteString.Lazy
 import qualified Router.Wai.Responses as Wai.Responses
+import qualified Router.RequestProperties as RequestProperties
 
 
 newtype RequestParser a =
-  RequestParser (ReaderT Wai.Request (StateT [Text] (ExceptT Text IO)) a)
+  RequestParser (ReaderT RequestProperties.Properties (StateT [Text] (ExceptT Text IO)) a)
   deriving (Functor, Applicative, Monad, Alternative, MonadPlus, MonadIO)
 
 instance Monoid (RequestParser a) where
@@ -18,7 +22,10 @@ instance Monoid (RequestParser a) where
 
 requestParser :: Wai.Request -> RequestParser a -> IO (Either Text a)
 requestParser request (RequestParser reader) =
-  runReaderT reader request & \state -> evalStateT state (Wai.pathInfo request) & runExceptT
+  runExceptT $
+  flip evalStateT (Wai.pathInfo request) $
+  flip runReaderT (RequestProperties.fromRequest request) $
+  reader
 
 requestParserApplication :: RequestParser Wai.Response -> Wai.Application
 requestParserApplication x =
@@ -37,8 +44,8 @@ failure message =
 
 -- |
 -- Consume the next segment of the path.
-segment :: RequestParser Text
-segment =
+nextSegment :: RequestParser Text
+nextSegment =
   RequestParser $
   lift $
   StateT $
@@ -48,35 +55,68 @@ segment =
     _ ->
       ExceptT (return (Left "No segments left"))
 
-segmentIs :: Text -> RequestParser ()
-segmentIs expected =
-  segment >>=
-  \actual ->
-    if actual == expected
-      then
-        return ()
-      else
-        failure $
-        "The actual segment \"" <> actual <>
-        "\" does not equal the expected \"" <> expected <> "\""
-
--- |
--- Consume the next path segment and parse it using Attoparsec.
-parseSegment :: Data.Attoparsec.Text.Parser a -> RequestParser a
-parseSegment parser =
-  segment >>=
-  liftEither . either (Left . fromString) Right . Data.Attoparsec.Text.parseOnly parser
-
 method :: RequestParser Method
 method =
-  undefined
+  RequestParser $
+  ReaderT $
+  return . RequestProperties.method
+
+param :: Text -> RequestParser (Maybe Text)
+param name =
+  RequestParser $
+  ReaderT $
+  \properties ->
+    lift $
+    ExceptT $
+    return $
+    maybe (Left ("Param \"" <> fromString (show name) <> "\" not found")) Right $
+    RequestProperties.lookupParam name properties
+
+consumeBody :: (IO ByteString -> IO () -> IO a) -> RequestParser a
+consumeBody consumer =
+  RequestParser $
+  ReaderT $
+  \properties ->
+    lift $
+    ExceptT $
+    fmap (either (Left . fromString . show :: SomeException -> Either Text a) Right) $
+    try $
+    consumer (Wai.requestBody (RequestProperties.request properties)) (return ())
+
+consumeBodyAsStrictBytes :: RequestParser ByteString
+consumeBodyAsStrictBytes =
+  consumeBody consumer
+  where
+    consumer nextChunk release =
+      fmap ByteString.TreeBuilder.toByteString $
+      loop mempty
+      where
+        loop acc =
+          nextChunk >>= onChunk
+          where
+            onChunk chunk =
+              if ByteString.null chunk
+                then release $> acc
+                else loop (acc <> ByteString.TreeBuilder.byteString chunk)
+
+consumeBodyAsLazyBytes :: RequestParser ByteString.Lazy.ByteString
+consumeBodyAsLazyBytes =
+  RequestParser $
+  ReaderT $
+  \properties ->
+    liftIO $
+    Wai.strictRequestBody (RequestProperties.request properties)
 
 liftEither :: Either Text a -> RequestParser a
 liftEither =
-  undefined
+  RequestParser .
+  lift .
+  lift .
+  ExceptT .
+  return
 
 liftMaybe :: Maybe a -> RequestParser a
 liftMaybe =
-  undefined
-
+  liftEither .
+  maybe (Left "") Right
 
