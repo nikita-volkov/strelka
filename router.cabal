@@ -48,6 +48,8 @@ library
     attoparsec >= 0.10 && < 0.14,
     bytestring >= 0.10 && < 0.11,
     text >= 1 && < 2,
+    unordered-containers >= 0.2 && < 0.3,
     -- 
+    semigroups >= 0.18 && < 0.19,
     transformers >= 0.4 && < 0.6,
     base-prelude < 2

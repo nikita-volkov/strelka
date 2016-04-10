@@ -7,7 +7,7 @@ where
 
 -- base-prelude
 -------------------------
-import BasePrelude as Exports hiding (left, right, isLeft, isRight, Handler, fail)
+import BasePrelude as Exports hiding (First(..), Last(..), (<>))
 
 -- transformers
 -------------------------
@@ -19,6 +19,14 @@ import Control.Monad.Trans.Maybe as Exports
 import Control.Monad.Trans.Reader as Exports (Reader, runReader, mapReader, withReader, ReaderT(ReaderT), runReaderT, mapReaderT, withReaderT)
 import Control.Monad.Trans.State.Strict as Exports (State, runState, evalState, execState, mapState, withState, StateT(StateT), runStateT, evalStateT, execStateT, mapStateT, withStateT)
 import Control.Monad.Trans.Writer.Strict as Exports (Writer, runWriter, execWriter, mapWriter, WriterT(..), execWriterT, mapWriterT)
+
+-- semigroups
+-------------------------
+import Data.Semigroup as Exports
+
+-- unordered-containers
+-------------------------
+import Data.HashMap.Strict as Exports (HashMap)
 
 -- bytestring
 -------------------------
