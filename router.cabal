@@ -36,6 +36,7 @@ library
   other-modules:
     Router.Prelude
     Router.Wai.Responses
+    Router.HeadersMap
   exposed-modules:
     Router.RequestParser
   default-extensions:
