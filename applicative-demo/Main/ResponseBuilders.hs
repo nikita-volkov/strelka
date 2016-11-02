@@ -23,3 +23,7 @@ putPassword username =
 listUsersAsJSON :: [(Text, Text)] -> ResponseBuilder
 listUsersAsJSON users =
   undefined
+
+listUsersAsHTML :: [(Text, Text)] -> ResponseBuilder
+listUsersAsHTML users =
+  undefined

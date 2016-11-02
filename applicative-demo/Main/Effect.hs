@@ -18,6 +18,15 @@ deleteUser :: Text -> Effect ()
 deleteUser name =
   undefined
 
+createUserAsHTML :: Text -> Text -> Effect ResponseBuilder
+createUserAsHTML name password =
+  undefined
+
 listUsersAsJSON :: Effect ResponseBuilder
 listUsersAsJSON =
   Effect (gets (A.listUsersAsJSON . B.toList))
+
+listUsersAsHTML :: Effect ResponseBuilder
+listUsersAsHTML =
+  Effect (gets (A.listUsersAsHTML . B.toList))
+

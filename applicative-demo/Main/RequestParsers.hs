@@ -4,11 +4,11 @@ import Rebase.Prelude
 import Router.RequestParser
 import Router.ResponseBuilder (ResponseBuilder)
 import Main.Effect (Effect)
+import qualified Main.Effect as B
 import qualified Main.ResponseBuilders as A
-import qualified Main.Effect as A
 
 
-top :: RequestParser A.Effect ResponseBuilder
+top :: RequestParser B.Effect ResponseBuilder
 top =
   consumeSegmentIfIs "users" *> users <|>
   consumeSegmentIfIs "user" *> user <|>
@@ -22,7 +22,7 @@ top =
           ensureThatMethodIsGet *> get
           where
             get =
-              error "list users in JSON"
+              lift (B.listUsersAsJSON)
         html =
           ensureThatMethodIsGet *> get <|>
           ensureThatMethodIsPost *> post
@@ -30,11 +30,14 @@ top =
             get =
               error "list users"
             post =
-              error "create a new user"
+              do
+                username <- getParamAsText "username"
+                password <- getParamAsText "password"
+                lift (B.createUserAsHTML username password)
     user =
-      ($) <$> responseFn <*> consumeSegment
+      consumeSegment >>= onUsername
       where
-        responseFn =
+        onUsername username =
           consumeSegmentIfIs "password" *> password <|>
           consumeSegmentIfIs "enabled" *> enabled <|>
           consumeSegmentIfIs "manage" *> manage <|>
@@ -47,9 +50,9 @@ top =
               ensureThatMethodIsPut *> put
               where
                 get =
-                  pure A.getPassword
+                  undefined
                 put =
-                  pure A.putPassword
+                  undefined
             enabled =
               undefined
             manage =
@@ -68,9 +71,3 @@ top =
           pure A.notFoundInHTML
         text =
           pure A.notFoundInText
-
--- createUser :: RequestParser (Effect)
-
--- effect :: Effect a -> Effect (RequestParser a)
--- effect effect =
---   liftIO
