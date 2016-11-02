@@ -39,4 +39,6 @@ newtype InputStream =
 newtype OutputStream =
   OutputStream ((ByteString -> IO ()) -> IO () -> IO ())
 
-
+instance IsString OutputStream where
+  fromString string =
+    OutputStream (\sendChunk flush -> sendChunk (fromString string) >> flush)
