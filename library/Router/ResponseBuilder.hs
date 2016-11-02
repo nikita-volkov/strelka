@@ -75,3 +75,7 @@ html x =
 json :: OutputStream -> ResponseBuilder
 json x =
   contentTypeOfJSON <> body x
+
+unauthorized :: ByteString -> ResponseBuilder
+unauthorized realm =
+  unauthorizedStatus <> header "WWW-Authenticate" ("Basic realm=\"" <> realm <> "\"")
