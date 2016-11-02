@@ -19,3 +19,7 @@ getPassword username =
 putPassword :: Text -> ResponseBuilder
 putPassword username =
   undefined
+
+listUsersAsJSON :: [(Text, Text)] -> ResponseBuilder
+listUsersAsJSON users =
+  undefined

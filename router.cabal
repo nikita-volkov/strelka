@@ -101,6 +101,7 @@ benchmark applicative-demo
   other-modules:
     Main.RequestParsers
     Main.ResponseBuilders
+    Main.Effect
   ghc-options:
     -O2
     -threaded
