@@ -19,6 +19,9 @@ instance MonadIO RequestParser where
       trySE =
         Router.Prelude.try
 
+run :: RequestParser a -> Request -> [Text] -> IO (Either Text (a, [Text]))
+run (RequestParser impl) request segments =
+  runExceptT (runStateT (runReaderT impl request) segments)
 
 failure :: Text -> RequestParser a
 failure message =
