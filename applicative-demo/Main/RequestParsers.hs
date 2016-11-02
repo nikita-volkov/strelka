@@ -3,10 +3,12 @@ module Main.RequestParsers where
 import Rebase.Prelude
 import Router.RequestParser
 import Router.ResponseBuilder (ResponseBuilder)
+import Main.Effect (Effect)
 import qualified Main.ResponseBuilders as A
+import qualified Main.Effect as A
 
 
-top :: RequestParser ResponseBuilder
+top :: RequestParser A.Effect ResponseBuilder
 top =
   consumeSegmentIfIs "users" *> users <|>
   consumeSegmentIfIs "user" *> user <|>
@@ -66,3 +68,9 @@ top =
           pure A.notFoundInHTML
         text =
           pure A.notFoundInText
+
+-- createUser :: RequestParser (Effect)
+
+-- effect :: Effect a -> Effect (RequestParser a)
+-- effect effect =
+--   liftIO

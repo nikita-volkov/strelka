@@ -7,23 +7,23 @@ import qualified Data.ByteString.Lazy as ByteString.Lazy
 import qualified ByteString.TreeBuilder as C
 
 
-newtype RequestParser a =
-  RequestParser (ReaderT Request (StateT [Text] (ExceptT Text IO)) a)
+newtype RequestParser m a =
+  RequestParser (ReaderT Request (StateT [Text] (ExceptT Text m)) a)
   deriving (Functor, Applicative, Monad, Alternative, MonadPlus, MonadError Text)
 
-instance MonadIO RequestParser where
+instance MonadIO m => MonadIO (RequestParser m) where
   liftIO io =
-    RequestParser ((lift . lift . ExceptT . fmap (either (Left . fromString . show) Right) . trySE) io)
+    RequestParser ((lift . lift . ExceptT . fmap (either (Left . fromString . show) Right) . liftIO . trySE) io)
     where
       trySE :: IO a -> IO (Either SomeException a)
       trySE =
         Router.Prelude.try
 
-run :: RequestParser a -> Request -> [Text] -> IO (Either Text (a, [Text]))
+run :: RequestParser m a -> Request -> [Text] -> m (Either Text (a, [Text]))
 run (RequestParser impl) request segments =
   runExceptT (runStateT (runReaderT impl request) segments)
 
-failure :: Text -> RequestParser a
+failure :: Monad m => Text -> RequestParser m a
 failure message =
   RequestParser $
   lift $
@@ -33,11 +33,11 @@ failure message =
   Left $
   message
 
-try :: RequestParser a -> RequestParser (Either Text a)
+try :: Monad m => RequestParser m a -> RequestParser m (Either Text a)
 try =
   tryError
 
-liftEither :: Either Text a -> RequestParser a
+liftEither :: Monad m => Either Text a -> RequestParser m a
 liftEither =
   RequestParser .
   lift .
@@ -45,7 +45,7 @@ liftEither =
   ExceptT .
   return
 
-liftMaybe :: Maybe a -> RequestParser a
+liftMaybe :: Monad m => Maybe a -> RequestParser m a
 liftMaybe =
   liftEither .
   maybe (Left "Unexpected Nothing") Right
@@ -56,7 +56,7 @@ liftMaybe =
 
 -- |
 -- Consume the next segment of the path.
-consumeSegment :: RequestParser Text
+consumeSegment :: Monad m => RequestParser m Text
 consumeSegment =
   RequestParser $
   lift $
@@ -67,11 +67,11 @@ consumeSegment =
     _ ->
       ExceptT (return (Left "No segments left"))
 
-consumeSegmentIfIs :: Text -> RequestParser ()
+consumeSegmentIfIs :: Text -> RequestParser m ()
 consumeSegmentIfIs expectedSegment =
   undefined
 
-ensureThatNoSegmentsIsLeft :: RequestParser ()
+ensureThatNoSegmentsIsLeft :: RequestParser m ()
 ensureThatNoSegmentsIsLeft =
   undefined
 
@@ -79,31 +79,31 @@ ensureThatNoSegmentsIsLeft =
 -- * Methods
 -------------------------
 
-getMethod :: RequestParser ByteString
+getMethod :: Monad m => RequestParser m ByteString
 getMethod =
   do
     Request (Method method) _ _ _ _ <- RequestParser ask
     return method
 
-ensureThatMethodIs :: ByteString -> RequestParser ()
+ensureThatMethodIs :: Monad m => ByteString -> RequestParser m ()
 ensureThatMethodIs expectedMethod =
   do
     method <- getMethod
     guard (expectedMethod == method)
 
-ensureThatMethodIsGet :: RequestParser ()
+ensureThatMethodIsGet :: Monad m => RequestParser m ()
 ensureThatMethodIsGet =
   ensureThatMethodIs "get"
 
-ensureThatMethodIsPost :: RequestParser ()
+ensureThatMethodIsPost :: Monad m => RequestParser m ()
 ensureThatMethodIsPost =
   ensureThatMethodIs "post"
 
-ensureThatMethodIsPut :: RequestParser ()
+ensureThatMethodIsPut :: Monad m => RequestParser m ()
 ensureThatMethodIsPut =
   ensureThatMethodIs "put"
 
-ensureThatMethodIsDelete :: RequestParser ()
+ensureThatMethodIsDelete :: Monad m => RequestParser m ()
 ensureThatMethodIsDelete =
   ensureThatMethodIs "delete"
 
@@ -113,7 +113,7 @@ ensureThatMethodIsDelete =
 
 -- |
 -- Lookup a header by name in lower-case.
-getHeader :: ByteString -> RequestParser ByteString
+getHeader :: ByteString -> RequestParser m ByteString
 getHeader name =
   undefined
 
@@ -121,19 +121,19 @@ getHeader name =
 -- Ensure that the request provides an Accept header,
 -- which includes the specified content type.
 -- Content type must be in lower-case.
-ensureThatAccepts :: ByteString -> RequestParser ()
+ensureThatAccepts :: ByteString -> RequestParser m ()
 ensureThatAccepts contentType =
   undefined
 
-ensureThatAcceptsText :: RequestParser ()
+ensureThatAcceptsText :: RequestParser m ()
 ensureThatAcceptsText =
   ensureThatAccepts "text/plain"
 
-ensureThatAcceptsHTML :: RequestParser ()
+ensureThatAcceptsHTML :: RequestParser m ()
 ensureThatAcceptsHTML =
   ensureThatAccepts "text/html"
 
-ensureThatAcceptsJSON :: RequestParser ()
+ensureThatAcceptsJSON :: RequestParser m ()
 ensureThatAcceptsJSON =
   ensureThatAccepts "application/json"
 
@@ -141,7 +141,7 @@ ensureThatAcceptsJSON =
 -- Check whether the request provides an Accept header,
 -- which includes the specified content type.
 -- Content type must be in lower-case.
-checkIfAccepts :: ByteString -> RequestParser Bool
+checkIfAccepts :: ByteString -> RequestParser m Bool
 checkIfAccepts contentType =
   undefined
 
@@ -149,7 +149,7 @@ checkIfAccepts contentType =
 -- * Params
 -------------------------
 
-getParam :: ByteString -> RequestParser ByteString
+getParam :: ByteString -> RequestParser m ByteString
 getParam name =
   undefined
 
@@ -157,13 +157,13 @@ getParam name =
 -- * Body
 -------------------------
 
-consumeBody :: (IO ByteString -> IO a) -> RequestParser a
+consumeBody :: MonadIO m => (IO ByteString -> IO a) -> RequestParser m a
 consumeBody consume =
   do
     Request _ _ _ _ (InputStream getChunk) <- RequestParser ask
     liftIO (consume getChunk)
 
-consumeBodyAsBytesBuilder :: RequestParser C.Builder
+consumeBodyAsBytesBuilder :: MonadIO m => RequestParser m C.Builder
 consumeBodyAsBytesBuilder =
   consumeBody consumer
   where
@@ -178,12 +178,11 @@ consumeBodyAsBytesBuilder =
                 then return acc
                 else loop (acc <> C.byteString chunk)
 
-consumeBodyAsStrictBytes :: RequestParser ByteString
+consumeBodyAsStrictBytes :: MonadIO m => RequestParser m ByteString
 consumeBodyAsStrictBytes =
   fmap C.toByteString consumeBodyAsBytesBuilder
 
-consumeBodyAsLazyBytes :: RequestParser ByteString.Lazy.ByteString
+consumeBodyAsLazyBytes :: MonadIO m => RequestParser m ByteString.Lazy.ByteString
 consumeBodyAsLazyBytes =
   fmap C.toLazyByteString consumeBodyAsBytesBuilder
-
 
