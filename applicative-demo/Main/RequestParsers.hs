@@ -22,18 +22,21 @@ top =
           ensureThatMethodIsGet *> get
           where
             get =
-              lift (B.listUsersAsJSON)
+              lift B.listUsers >>= return . A.listUsersAsJSON
         html =
           ensureThatMethodIsGet *> get <|>
           ensureThatMethodIsPost *> post
           where
             get =
-              error "list users"
+              lift B.listUsers >>= return . A.listUsersAsHTML
             post =
               do
                 username <- getParamAsText "username"
                 password <- getParamAsText "password"
-                lift (B.createUserAsHTML username password)
+                success <- lift (B.createUser username password)
+                if success
+                  then return mempty
+                  else undefined
     user =
       consumeSegment >>= onUsername
       where
