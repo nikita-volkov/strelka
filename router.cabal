@@ -98,6 +98,9 @@ benchmark applicative-demo
     applicative-demo
   main-is:
     Main.hs
+  other-modules:
+    Main.RequestParsers
+    Main.ResponseBuilders
   ghc-options:
     -O2
     -threaded
