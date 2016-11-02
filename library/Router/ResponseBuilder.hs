@@ -56,14 +56,18 @@ okayStatus :: ResponseBuilder
 okayStatus =
   status 200
 
+notFoundStatus :: ResponseBuilder
+notFoundStatus =
+  status 404
+
 text :: OutputStream -> ResponseBuilder
 text x =
-  okayStatus <> contentTypeOfText <> body x
+  contentTypeOfText <> body x
 
 html :: OutputStream -> ResponseBuilder
 html x =
-  okayStatus <> contentTypeOfHTML <> body x
+  contentTypeOfHTML <> body x
 
 json :: OutputStream -> ResponseBuilder
 json x =
-  okayStatus <> contentTypeOfJSON <> body x
+  contentTypeOfJSON <> body x

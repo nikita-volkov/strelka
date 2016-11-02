@@ -13,17 +13,17 @@ top =
   notFound
   where
     users =
-      ensureThatAccepts "application/json" *> json <|>
-      ensureThatAccepts "text/html" *> html
+      ensureThatAcceptsJSON *> json <|>
+      ensureThatAcceptsHTML *> html
       where
         json =
-          ensureThatMethodIs "get" *> get
+          ensureThatMethodIsGet *> get
           where
             get =
               error "list users in JSON"
         html =
-          ensureThatMethodIs "get" *> get <|>
-          ensureThatMethodIs "post" *> post
+          ensureThatMethodIsGet *> get <|>
+          ensureThatMethodIsPost *> post
           where
             get =
               error "list users"
@@ -36,12 +36,18 @@ top =
           consumeSegmentIfIs "password" *> password <|>
           consumeSegmentIfIs "enabled" *> enabled <|>
           consumeSegmentIfIs "manage" *> manage <|>
-          ensureThatMethodIs "get" *> get <|>
-          ensureThatMethodIs "post" *> post <|>
-          ensureThatMethodIs "delete" *> delete
+          ensureThatMethodIsGet *> get <|>
+          ensureThatMethodIsPost *> post <|>
+          ensureThatMethodIsDelete *> delete
           where
             password =
-              pure A.getPassword
+              ensureThatMethodIsGet *> get <|>
+              ensureThatMethodIsPut *> put
+              where
+                get =
+                  pure A.getPassword
+                put =
+                  pure A.putPassword
             enabled =
               undefined
             manage =
@@ -53,7 +59,7 @@ top =
             delete =
               undefined
     notFound =
-      ensureThatAccepts "text/html" *> html <|>
+      ensureThatAcceptsHTML *> html <|>
       text
       where
         html =

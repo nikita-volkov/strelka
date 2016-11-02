@@ -88,6 +88,22 @@ ensureThatMethodIs expectedMethod =
     method <- getMethod
     guard (expectedMethod == method)
 
+ensureThatMethodIsGet :: RequestParser ()
+ensureThatMethodIsGet =
+  ensureThatMethodIs "get"
+
+ensureThatMethodIsPost :: RequestParser ()
+ensureThatMethodIsPost =
+  ensureThatMethodIs "post"
+
+ensureThatMethodIsPut :: RequestParser ()
+ensureThatMethodIsPut =
+  ensureThatMethodIs "put"
+
+ensureThatMethodIsDelete :: RequestParser ()
+ensureThatMethodIsDelete =
+  ensureThatMethodIs "delete"
+
 
 -- * Headers
 -------------------------
@@ -105,6 +121,18 @@ getHeader name =
 ensureThatAccepts :: ByteString -> RequestParser ()
 ensureThatAccepts contentType =
   undefined
+
+ensureThatAcceptsText :: RequestParser ()
+ensureThatAcceptsText =
+  ensureThatAccepts "text/plain"
+
+ensureThatAcceptsHTML :: RequestParser ()
+ensureThatAcceptsHTML =
+  ensureThatAccepts "text/html"
+
+ensureThatAcceptsJSON :: RequestParser ()
+ensureThatAcceptsJSON =
+  ensureThatAccepts "application/json"
 
 -- |
 -- Check whether the request provides an Accept header,
