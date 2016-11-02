@@ -1,36 +1,24 @@
 module Router.RequestParser where
 
 import Router.Prelude
-import qualified Network.Wai as Wai
-import qualified Data.Attoparsec.Text
-import qualified ByteString.TreeBuilder
+import Router.Model
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Lazy as ByteString.Lazy
-import qualified Router.Wai.Responses as Wai.Responses
-import qualified Router.RequestProperties as RequestProperties
+import qualified ByteString.TreeBuilder as C
 
 
 newtype RequestParser a =
-  RequestParser (ReaderT RequestProperties.Properties (StateT [Text] (ExceptT Text IO)) a)
-  deriving (Functor, Applicative, Monad, Alternative, MonadPlus, MonadIO)
+  RequestParser (ReaderT Request (StateT [Text] (ExceptT Text IO)) a)
+  deriving (Functor, Applicative, Monad, Alternative, MonadPlus, MonadError Text)
 
-instance Monoid (RequestParser a) where
-  mempty =
-    RequestParser empty
-  mappend (RequestParser reader1) (RequestParser reader2) =
-    RequestParser (reader1 <|> reader2)
+instance MonadIO RequestParser where
+  liftIO io =
+    RequestParser ((lift . lift . ExceptT . fmap (either (Left . fromString . show) Right) . trySE) io)
+    where
+      trySE :: IO a -> IO (Either SomeException a)
+      trySE =
+        Router.Prelude.try
 
-requestParser :: Wai.Request -> RequestParser a -> IO (Either Text a)
-requestParser request (RequestParser reader) =
-  runExceptT $
-  flip evalStateT (Wai.pathInfo request) $
-  flip runReaderT (RequestProperties.fromRequest request) $
-  reader
-
-requestParserApplication :: RequestParser Wai.Response -> Wai.Application
-requestParserApplication x =
-  \request responseHandler ->
-    requestParser request x >>= responseHandler . either (const Wai.Responses.notFound) id
 
 failure :: Text -> RequestParser a
 failure message =
@@ -42,70 +30,9 @@ failure message =
   Left $
   message
 
--- |
--- Consume the next segment of the path.
-nextSegment :: RequestParser Text
-nextSegment =
-  RequestParser $
-  lift $
-  StateT $
-  \case
-    segmentsHead : segmentsTail ->
-      return (segmentsHead, segmentsTail)
-    _ ->
-      ExceptT (return (Left "No segments left"))
-
-method :: RequestParser Method
-method =
-  RequestParser $
-  ReaderT $
-  return . RequestProperties.method
-
-param :: Text -> RequestParser (Maybe Text)
-param name =
-  RequestParser $
-  ReaderT $
-  \properties ->
-    lift $
-    ExceptT $
-    return $
-    maybe (Left ("Param \"" <> fromString (show name) <> "\" not found")) Right $
-    RequestProperties.lookupParam name properties
-
-consumeBody :: (IO ByteString -> IO () -> IO a) -> RequestParser a
-consumeBody consumer =
-  RequestParser $
-  ReaderT $
-  \properties ->
-    lift $
-    ExceptT $
-    fmap (either (Left . fromString . show :: SomeException -> Either Text a) Right) $
-    try $
-    consumer (Wai.requestBody (RequestProperties.request properties)) (return ())
-
-consumeBodyAsStrictBytes :: RequestParser ByteString
-consumeBodyAsStrictBytes =
-  consumeBody consumer
-  where
-    consumer nextChunk release =
-      fmap ByteString.TreeBuilder.toByteString $
-      loop mempty
-      where
-        loop acc =
-          nextChunk >>= onChunk
-          where
-            onChunk chunk =
-              if ByteString.null chunk
-                then release $> acc
-                else loop (acc <> ByteString.TreeBuilder.byteString chunk)
-
-consumeBodyAsLazyBytes :: RequestParser ByteString.Lazy.ByteString
-consumeBodyAsLazyBytes =
-  RequestParser $
-  ReaderT $
-  \properties ->
-    liftIO $
-    Wai.strictRequestBody (RequestProperties.request properties)
+try :: RequestParser a -> RequestParser (Either Text a)
+try =
+  tryError
 
 liftEither :: Either Text a -> RequestParser a
 liftEither =
@@ -118,5 +45,114 @@ liftEither =
 liftMaybe :: Maybe a -> RequestParser a
 liftMaybe =
   liftEither .
-  maybe (Left "") Right
+  maybe (Left "Unexpected Nothing") Right
+
+
+-- * Path segments
+-------------------------
+
+-- |
+-- Consume the next segment of the path.
+consumeSegment :: RequestParser Text
+consumeSegment =
+  RequestParser $
+  lift $
+  StateT $
+  \case
+    segmentsHead : segmentsTail ->
+      return (segmentsHead, segmentsTail)
+    _ ->
+      ExceptT (return (Left "No segments left"))
+
+consumeSegmentIfIs :: Text -> RequestParser ()
+consumeSegmentIfIs expectedSegment =
+  undefined
+
+ensureThatNoSegmentsIsLeft :: RequestParser ()
+ensureThatNoSegmentsIsLeft =
+  undefined
+
+
+-- * Methods
+-------------------------
+
+getMethod :: RequestParser ByteString
+getMethod =
+  do
+    Request (Method method) _ _ _ _ <- RequestParser ask
+    return method
+
+ensureThatMethodIs :: ByteString -> RequestParser ()
+ensureThatMethodIs expectedMethod =
+  do
+    method <- getMethod
+    guard (expectedMethod == method)
+
+
+-- * Headers
+-------------------------
+
+-- |
+-- Lookup a header by name in lower-case.
+getHeader :: ByteString -> RequestParser ByteString
+getHeader name =
+  undefined
+
+-- |
+-- Ensure that the request provides an Accept header,
+-- which includes the specified content type.
+-- Content type must be in lower-case.
+ensureThatAccepts :: ByteString -> RequestParser ()
+ensureThatAccepts contentType =
+  undefined
+
+-- |
+-- Check whether the request provides an Accept header,
+-- which includes the specified content type.
+-- Content type must be in lower-case.
+checkIfAccepts :: ByteString -> RequestParser Bool
+checkIfAccepts contentType =
+  undefined
+
+
+-- * Params
+-------------------------
+
+getParam :: ByteString -> RequestParser ByteString
+getParam name =
+  undefined
+
+
+-- * Body
+-------------------------
+
+consumeBody :: (IO ByteString -> IO a) -> RequestParser a
+consumeBody consume =
+  do
+    Request _ _ _ _ (InputStream getChunk) <- RequestParser ask
+    liftIO (consume getChunk)
+
+consumeBodyAsBytesBuilder :: RequestParser C.Builder
+consumeBodyAsBytesBuilder =
+  consumeBody consumer
+  where
+    consumer getChunk =
+      loop mempty
+      where
+        loop acc =
+          getChunk >>= onChunk
+          where
+            onChunk chunk =
+              if ByteString.null chunk
+                then return acc
+                else loop (acc <> C.byteString chunk)
+
+consumeBodyAsStrictBytes :: RequestParser ByteString
+consumeBodyAsStrictBytes =
+  fmap C.toByteString consumeBodyAsBytesBuilder
+
+consumeBodyAsLazyBytes :: RequestParser ByteString.Lazy.ByteString
+consumeBodyAsLazyBytes =
+  fmap C.toLazyByteString consumeBodyAsBytesBuilder
+
 

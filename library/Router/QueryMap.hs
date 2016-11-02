@@ -12,9 +12,9 @@ newtype QueryMap =
   QueryMap (HashMap Text (Maybe Text))
   deriving (Semigroup, Monoid)
 
-fromQuery :: Query -> QueryMap
-fromQuery query =
-  QueryMap (HashMap.Strict.fromList (queryToQueryText query))
+-- fromQuery :: Query -> QueryMap
+-- fromQuery query =
+--   QueryMap (HashMap.Strict.fromList (queryToQueryText query))
 
 lookup :: Text -> QueryMap -> Maybe (Maybe Text)
 lookup name (QueryMap hashMap) =

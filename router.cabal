@@ -40,27 +40,78 @@ library
     library
   other-modules:
     Router.Prelude
-    Router.Wai.Responses
     Router.HeadersMap
     Router.QueryMap
-    Router.RequestProperties
   exposed-modules:
+    Router.Model
     Router.RequestParser
+    Router.ResponseBuilder
   default-extensions:
     Arrows, BangPatterns, ConstraintKinds, DataKinds, DefaultSignatures, DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric, DeriveTraversable, EmptyDataDecls, FlexibleContexts, FlexibleInstances, FunctionalDependencies, GADTs, GeneralizedNewtypeDeriving, LambdaCase, LiberalTypeSynonyms, MagicHash, MultiParamTypeClasses, MultiWayIf, NoImplicitPrelude, NoMonomorphismRestriction, OverloadedStrings, PatternGuards, ParallelListComp, QuasiQuotes, RankNTypes, RecordWildCards, ScopedTypeVariables, StandaloneDeriving, TemplateHaskell, TupleSections, TypeFamilies, TypeOperators, UnboxedTuples
   default-language:
     Haskell2010
   build-depends:
-    http-types >= 0.9 && < 0.10,
-    wai == 3.*,
-    attoparsec >= 0.10 && < 0.14,
-    bytestring-tree-builder >= 0.2.5 && < 0.3,
+    -- 
+    bytestring-tree-builder == 0.2.*,
+    attoparsec >= 0.13 && < 0.14,
     bytestring >= 0.10 && < 0.11,
-    case-insensitive >= 1 && < 2,
     text >= 1 && < 2,
     unordered-containers >= 0.2 && < 0.3,
     -- 
     semigroups >= 0.18 && < 0.19,
+    mtl == 2.*,
     transformers >= 0.4 && < 0.6,
     base-prelude < 2,
     base < 5
+
+
+benchmark monadic-demo
+  type: 
+    exitcode-stdio-1.0
+  hs-source-dirs:
+    monadic-demo
+  main-is:
+    Main.hs
+  ghc-options:
+    -O2
+    -threaded
+    "-with-rtsopts=-N"
+  ghc-prof-options:
+    -O2
+    -threaded
+    -fprof-auto
+    "-with-rtsopts=-N -p -s -h -i0.1"
+  default-extensions:
+    Arrows, BangPatterns, ConstraintKinds, DataKinds, DefaultSignatures, DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric, DeriveTraversable, EmptyDataDecls, FlexibleContexts, FlexibleInstances, FunctionalDependencies, GADTs, GeneralizedNewtypeDeriving, LambdaCase, LiberalTypeSynonyms, MagicHash, MultiParamTypeClasses, MultiWayIf, NoImplicitPrelude, NoMonomorphismRestriction, OverloadedStrings, PatternGuards, ParallelListComp, QuasiQuotes, RankNTypes, RecordWildCards, ScopedTypeVariables, StandaloneDeriving, TemplateHaskell, TupleSections, TypeFamilies, TypeOperators, UnboxedTuples
+  default-language:
+    Haskell2010
+  build-depends:
+    router,
+    rebase < 2
+
+
+
+benchmark applicative-demo
+  type: 
+    exitcode-stdio-1.0
+  hs-source-dirs:
+    applicative-demo
+  main-is:
+    Main.hs
+  ghc-options:
+    -O2
+    -threaded
+    "-with-rtsopts=-N"
+  ghc-prof-options:
+    -O2
+    -threaded
+    -fprof-auto
+    "-with-rtsopts=-N -p -s -h -i0.1"
+  default-extensions:
+    Arrows, BangPatterns, ConstraintKinds, DataKinds, DefaultSignatures, DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric, DeriveTraversable, EmptyDataDecls, FlexibleContexts, FlexibleInstances, FunctionalDependencies, GADTs, GeneralizedNewtypeDeriving, LambdaCase, LiberalTypeSynonyms, MagicHash, MultiParamTypeClasses, MultiWayIf, NoImplicitPrelude, NoMonomorphismRestriction, OverloadedStrings, PatternGuards, ParallelListComp, QuasiQuotes, RankNTypes, RecordWildCards, ScopedTypeVariables, StandaloneDeriving, TemplateHaskell, TupleSections, TypeFamilies, TypeOperators, UnboxedTuples
+  default-language:
+    Haskell2010
+  build-depends:
+    router,
+    rebase < 2
+
