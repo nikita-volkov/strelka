@@ -64,6 +64,10 @@ unauthorizedStatus :: ResponseBuilder
 unauthorizedStatus =
   status 401
 
+badRequestStatus :: ResponseBuilder
+badRequestStatus =
+  status 400
+
 text :: OutputStream -> ResponseBuilder
 text x =
   contentTypeOfText <> body x
