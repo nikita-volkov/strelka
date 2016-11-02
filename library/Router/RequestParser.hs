@@ -5,6 +5,7 @@ import Router.Model
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Lazy as ByteString.Lazy
 import qualified ByteString.TreeBuilder as C
+import qualified Router.HTTPAuthorizationParser as D
 
 
 newtype RequestParser m a =
@@ -18,6 +19,10 @@ instance MonadIO m => MonadIO (RequestParser m) where
       trySE :: IO a -> IO (Either SomeException a)
       trySE =
         Router.Prelude.try
+
+instance MonadTrans RequestParser where
+  lift m =
+    RequestParser (lift (lift (lift m)))
 
 run :: RequestParser m a -> Request -> [Text] -> m (Either Text (a, [Text]))
 run (RequestParser impl) request segments =
@@ -145,12 +150,16 @@ checkIfAccepts :: ByteString -> RequestParser m Bool
 checkIfAccepts contentType =
   undefined
 
+getAuthorization :: Monad m => RequestParser m (Text, Text)
+getAuthorization =
+  getHeader "Authorization" >>= liftEither . D.basicCredentials
+
 
 -- * Params
 -------------------------
 
-getParam :: ByteString -> RequestParser m ByteString
-getParam name =
+getParamAsText :: Text -> RequestParser m Text
+getParamAsText name =
   undefined
 
 

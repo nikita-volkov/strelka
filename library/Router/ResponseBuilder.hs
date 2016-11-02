@@ -60,6 +60,10 @@ notFoundStatus :: ResponseBuilder
 notFoundStatus =
   status 404
 
+unauthorizedStatus :: ResponseBuilder
+unauthorizedStatus =
+  status 401
+
 text :: OutputStream -> ResponseBuilder
 text x =
   contentTypeOfText <> body x
