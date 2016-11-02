@@ -62,4 +62,5 @@ library
     -- 
     semigroups >= 0.18 && < 0.19,
     transformers >= 0.4 && < 0.6,
-    base-prelude < 2
+    base-prelude < 2,
+    base < 5
