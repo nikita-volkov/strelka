@@ -60,6 +60,8 @@ library
     -- 
     semigroups >= 0.18 && < 0.19,
     mtl == 2.*,
+    monad-control >= 1 && < 2,
+    transformers-base >= 0.4 && < 0.5,
     transformers >= 0.4 && < 0.6,
     base-prelude < 2,
     base < 5
