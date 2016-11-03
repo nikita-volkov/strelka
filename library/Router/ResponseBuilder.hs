@@ -68,6 +68,10 @@ badRequestStatus :: ResponseBuilder
 badRequestStatus =
   status 400
 
+internalErrorStatus :: ResponseBuilder
+internalErrorStatus =
+  status 500
+
 text :: OutputStream -> ResponseBuilder
 text x =
   contentTypeOfText <> body x
