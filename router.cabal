@@ -56,6 +56,8 @@ library
   build-depends:
     -- codecs:
     sandi >= 0.4 && < 0.5,
+    -- streaming:
+    ducers == 0.1.*,
     -- 
     bytestring-tree-builder == 0.2.*,
     attoparsec >= 0.13 && < 0.14,
