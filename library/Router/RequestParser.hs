@@ -195,3 +195,9 @@ consumeBodyAsLazyBytes :: MonadIO m => RequestParser m ByteString.Lazy.ByteStrin
 consumeBodyAsLazyBytes =
   fmap C.toLazyByteString consumeBodyAsBytesBuilder
 
+-- |
+-- Consumes the input stream as an \"application/x-www-form-urlencoded\"
+-- association list of parameters.
+consumeBodyAsParams :: MonadIO m => RequestParser m (HashMap Text Text)
+consumeBodyAsParams =
+  undefined
