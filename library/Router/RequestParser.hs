@@ -6,6 +6,7 @@ import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Lazy as ByteString.Lazy
 import qualified ByteString.TreeBuilder as C
 import qualified Router.HTTPAuthorizationParser as D
+import qualified Router.ParamsParser as E
 
 
 newtype RequestParser m a =
@@ -198,6 +199,6 @@ consumeBodyAsLazyBytes =
 -- |
 -- Consumes the input stream as an \"application/x-www-form-urlencoded\"
 -- association list of parameters.
-consumeBodyAsParams :: MonadIO m => RequestParser m (HashMap Text Text)
+consumeBodyAsParams :: E.Params a -> RequestParser m a
 consumeBodyAsParams =
   undefined

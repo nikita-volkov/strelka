@@ -2,6 +2,7 @@ module Main.RequestParsers where
 
 import Rebase.Prelude
 import Router.RequestParser
+import Router.ParamsParser
 import Router.ResponseBuilder (ResponseBuilder)
 import Main.Effect (Effect)
 import qualified Main.Effect as B
@@ -31,12 +32,14 @@ top =
               lift B.listUsers >>= return . A.listUsersAsHTML
             post =
               do
-                username <- getParamAsText "username"
-                password <- getParamAsText "password"
+                (username, password) <- consumeBodyAsParams paramsParser
                 success <- lift (B.createUser username password)
                 if success
                   then return mempty
                   else undefined
+              where
+                paramsParser =
+                  (,) <$> param "username" text <*> param "password" text                    
     user =
       consumeSegment >>= onUsername
       where

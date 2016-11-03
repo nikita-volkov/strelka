@@ -46,6 +46,7 @@ library
   exposed-modules:
     Router.Model
     Router.RequestParser
+    Router.ParamsParser
     Router.ResponseBuilder
     Router.Executor
   default-extensions:
