@@ -2,21 +2,31 @@ module Main.Effect where
 
 import Rebase.Prelude
 import Router.ResponseBuilder (ResponseBuilder)
-import qualified Rebase.Data.HashMap.Strict as A
+import qualified Rebase.Data.HashSet as A
 
 
 newtype Effect a =
-  Effect (StateT (HashMap Text Text) IO a)
-  deriving (Functor, Applicative, Monad)
+  Effect (StateT (HashSet Int) IO a)
+  deriving (Functor, Applicative, Monad, MonadIO)
 
-createUser :: Text -> Text -> Effect Bool
-createUser name password =
+type Numbers =
+  HashSet Int
+
+type Users =
+  HashMap Text Text
+
+addNumber :: Int -> Effect ()
+addNumber x =
+  Effect (modify (A.insert x))
+
+listNumbers :: Effect [Int]
+listNumbers =
+  Effect (gets A.toList)
+
+deleteNumber :: Int -> Effect ()
+deleteNumber x =
+  Effect (modify (A.delete x))
+
+authorize :: Text -> Text -> Effect Bool
+authorize username password =
   undefined
-
-deleteUser :: Text -> Effect ()
-deleteUser name =
-  undefined
-
-listUsers :: Effect [(Text, Text)]
-listUsers =
-  Effect (gets (A.toList))

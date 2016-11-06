@@ -27,3 +27,17 @@ listUsersAsJSON users =
 listUsersAsHTML :: [(Text, Text)] -> ResponseBuilder
 listUsersAsHTML users =
   undefined
+
+listNumbersAsJSON :: [Int] -> ResponseBuilder
+listNumbersAsJSON numbers =
+  json body
+  where
+    body =
+      fromString ("[" <> intercalate "," (map show numbers) <> "]")
+
+listNumbersAsHTML :: [Int] -> ResponseBuilder
+listNumbersAsHTML numbers =
+  html body
+  where
+    body =
+      fromString (foldMap (\x -> "<p>" <> show x <> "</p>") numbers)
