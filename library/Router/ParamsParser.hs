@@ -4,44 +4,53 @@ import Router.Prelude
 import qualified ByteString.TreeBuilder as C
 import qualified Router.HTTPAuthorizationParser as D
 import qualified Ducers.Reducer as E
+import qualified Data.Attoparsec.ByteString.Char8 as F
 
 
-newtype Params a =
-  Params (E.Reducer IO ByteString (Either Text a))
-  deriving (Functor)
+newtype ParamsParser a =
+  ParamsParser (F.Parser a)
+  deriving (Functor, Alternative)
 
-instance Applicative Params where
+instance Applicative ParamsParser where
   pure x =
-    Params (pure (pure x))
-  (<*>) (Params impl1) (Params impl2) =
-    undefined
+    ParamsParser (pure x)
+  (<*>) (ParamsParser atto1) (ParamsParser atto2) =
+    ParamsParser (($) <$> atto1 <* F.char '&' <*> atto2)
 
-instance Alternative Params where
-
-param :: ByteString -> Param a -> Params a
-param name (Param paramReducer) =
-  Params (paramsReducer)
+param :: ByteString -> ParamParser a -> ParamsParser a
+param name (ParamParser paramParser) =
+  ParamsParser (paramsParser)
   where
-    paramsReducer =
-      undefined
+    paramsParser =
+      do
+        F.string name
+        F.char '='
+        paramParser
 
-paramByText :: Text -> Param a -> Params a
+paramByText :: Text -> ParamParser a -> ParamsParser a
 paramByText =
   undefined
 
 
-newtype Param a =
-  Param (E.Reducer IO ByteString (Either Text a))
+newtype ParamParser a =
+  ParamParser (F.Parser a)
   deriving (Functor)
 
-text :: Param Text
+text :: ParamParser Text
 text =
   undefined
 
-int :: Param Int
+int :: ParamParser Int
 int =
-  undefined
+  ParamParser (F.decimal <* ampersandOrEOI)
+  where
+    ampersandOrEOI =
+      F.peekChar >>=
+      \case
+        Just '&' -> return ()
+        Just _ -> fail "Unexpected input"
+        Nothing -> return ()
 
-customParam :: (ByteString -> Either Text a) -> Param a
-customParam =
+customParamParser :: (ByteString -> Either Text a) -> ParamParser a
+customParamParser =
   undefined

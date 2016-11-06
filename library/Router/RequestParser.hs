@@ -199,6 +199,6 @@ consumeBodyAsLazyBytes =
 -- |
 -- Consumes the input stream as an \"application/x-www-form-urlencoded\"
 -- association list of parameters.
-consumeBodyAsParams :: E.Params a -> RequestParser m a
+consumeBodyAsParams :: E.ParamsParser a -> RequestParser m a
 consumeBodyAsParams =
   undefined
