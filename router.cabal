@@ -100,5 +100,6 @@ benchmark demo
     Haskell2010
   build-depends:
     router,
+    attoparsec,
     rebase < 2
 

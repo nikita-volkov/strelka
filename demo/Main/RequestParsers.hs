@@ -8,6 +8,7 @@ import Main.Effect (Effect)
 import qualified Main.Effect as B
 import qualified Main.ResponseBuilders as A
 import qualified Router.ResponseBuilder as C
+import qualified Data.Attoparsec.ByteString.Char8 as D
 
 
 type Route =
@@ -21,7 +22,8 @@ top =
   where
     numbers =
       ensureThatMethodIsGet *> get <|>
-      ensureThatMethodIsPut *> put
+      ensureThatMethodIsPut *> put <|>
+      ensureThatMethodIsDelete *> delete
       where
         get =
           ensureThatAcceptsJSON *> json <|>
@@ -35,9 +37,18 @@ top =
           authorizing "" authorized
           where
             authorized =
-              do
-                bytes <- consumeBodyAsStrictBytes
-                undefined
+              consumingBodyAsInt onInt
+              where
+                onInt int =
+                  lift (B.addNumber int) *> okay
+        delete =
+          authorizing "" authorized
+          where
+            authorized =
+              consumingBodyAsInt onInt
+              where
+                onInt int =
+                  lift (B.deleteNumber int) *> okay
     users =
       undefined
     notFound =
@@ -63,3 +74,19 @@ authorizing realm authorized =
         guard success
     unauthorized =
       pure (C.unauthorized realm)
+
+okay :: Route
+okay =
+  pure C.okayStatus
+
+badRequest :: Route
+badRequest =
+  ensureThatAcceptsHTML *> pure A.badRequestInHTML <|>
+  ensureThatAcceptsText *> pure A.badRequestInText <|>
+  pure C.badRequestStatus
+
+consumingBodyAsInt :: (Int -> Route) -> Route
+consumingBodyAsInt onInt =
+  do
+    parsingResult <- consumeBodyWithAttoparsec (D.decimal <* D.endOfInput)
+    either (const badRequest) onInt parsingResult

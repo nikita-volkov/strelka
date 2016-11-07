@@ -7,6 +7,7 @@ import qualified Data.ByteString.Lazy as ByteString.Lazy
 import qualified ByteString.TreeBuilder as C
 import qualified Router.HTTPAuthorizationParser as D
 import qualified Router.ParamsParser as E
+import qualified Data.Attoparsec.ByteString as F
 
 
 newtype RequestParser m a =
@@ -201,4 +202,8 @@ consumeBodyAsLazyBytes =
 -- association list of parameters.
 consumeBodyAsParams :: E.ParamsParser a -> RequestParser m a
 consumeBodyAsParams =
+  undefined
+
+consumeBodyWithAttoparsec :: F.Parser a -> RequestParser m (Either Text a)
+consumeBodyWithAttoparsec parser =
   undefined

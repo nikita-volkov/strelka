@@ -12,6 +12,14 @@ notFoundInText :: ResponseBuilder
 notFoundInText =
   notFoundStatus <> text "404 Not Found"
 
+badRequestInHTML :: ResponseBuilder
+badRequestInHTML =
+  badRequestStatus <> html "<h1>400 Bad Request</h1>"
+
+badRequestInText :: ResponseBuilder
+badRequestInText =
+  badRequestStatus <> text "400 Bad Request"
+
 getPassword :: Text -> ResponseBuilder
 getPassword username =
   undefined
