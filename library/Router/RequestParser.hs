@@ -74,13 +74,15 @@ consumeSegment =
     _ ->
       ExceptT (return (Left "No segments left"))
 
-consumeSegmentIfIs :: Text -> RequestParser m ()
+consumeSegmentIfIs :: Monad m => Text -> RequestParser m ()
 consumeSegmentIfIs expectedSegment =
-  undefined
+  do
+    segment <- consumeSegment
+    guard (segment == expectedSegment)
 
-ensureThatNoSegmentsIsLeft :: RequestParser m ()
+ensureThatNoSegmentsIsLeft :: Monad m => RequestParser m ()
 ensureThatNoSegmentsIsLeft =
-  undefined
+  RequestParser (lift (gets null)) >>= guard
 
 
 -- * Methods
