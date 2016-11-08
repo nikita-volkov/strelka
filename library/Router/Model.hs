@@ -4,7 +4,7 @@ import Router.Prelude
 
 
 data Request =
-  Request !Method !Path ![Param] ![Header] !InputStream
+  Request !Method !Path !Query ![Header] !InputStream
 
 data Response =
   Response !Status ![Header] !OutputStream
@@ -17,8 +17,8 @@ newtype Method =
 newtype Path =
   Path ByteString
 
-data Param =
-  Param !ByteString !ByteString
+data Query =
+  Query !ByteString
 
 -- |
 -- Header key and value all in lower-case.

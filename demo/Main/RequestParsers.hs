@@ -1,6 +1,6 @@
 module Main.RequestParsers where
 
-import Rebase.Prelude
+import Rebase.Prelude hiding (try)
 import Router.RequestParser
 import Router.ParamsParser
 import Router.ResponseBuilder (ResponseBuilder)
@@ -97,5 +97,5 @@ notFound =
 consumingBodyAsInt :: (Int -> Route) -> Route
 consumingBodyAsInt onInt =
   do
-    parsingResult <- consumeBodyWithAttoparsec (D.decimal <* D.endOfInput)
+    parsingResult <- unliftEither (consumeBodyWithAttoparsec (D.decimal <* D.endOfInput))
     either (const badRequest) onInt parsingResult

@@ -40,10 +40,6 @@ failure message =
   Left $
   message
 
-try :: Monad m => RequestParser m a -> RequestParser m (Either Text a)
-try =
-  tryError
-
 liftEither :: Monad m => Either Text a -> RequestParser m a
 liftEither =
   RequestParser .
@@ -56,6 +52,10 @@ liftMaybe :: Monad m => Maybe a -> RequestParser m a
 liftMaybe =
   liftEither .
   maybe (Left "Unexpected Nothing") Right
+
+unliftEither :: Monad m => RequestParser m a -> RequestParser m (Either Text a)
+unliftEither =
+  tryError
 
 
 -- * Path segments
@@ -201,9 +201,9 @@ consumeBodyAsLazyBytes =
 -- Consumes the input stream as an \"application/x-www-form-urlencoded\"
 -- association list of parameters.
 consumeBodyAsParams :: E.ParamsParser a -> RequestParser m a
-consumeBodyAsParams =
-  undefined
+consumeBodyAsParams (E.ParamsParser attoparsecParser) =
+  consumeBodyWithAttoparsec attoparsecParser
 
-consumeBodyWithAttoparsec :: F.Parser a -> RequestParser m (Either Text a)
+consumeBodyWithAttoparsec :: F.Parser a -> RequestParser m a
 consumeBodyWithAttoparsec parser =
   undefined
