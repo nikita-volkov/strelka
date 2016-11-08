@@ -3,7 +3,6 @@ module Router.ParamsParser where
 import Router.Prelude
 import qualified ByteString.TreeBuilder as C
 import qualified Router.HTTPAuthorizationParser as D
-import qualified Ducers.Reducer as E
 import qualified Data.Attoparsec.ByteString.Char8 as F
 
 
