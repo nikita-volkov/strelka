@@ -22,7 +22,7 @@ run (ResponseBuilder fn) =
 
 header :: ByteString -> ByteString -> ResponseBuilder
 header name value =
-  ResponseBuilder (\(Response status headers body) -> Response status (Header name value : headers) body)
+  ResponseBuilder (\(Response status headers body) -> Response status (Header (HeaderName name) (HeaderValue value) : headers) body)
 
 status :: Int -> ResponseBuilder
 status x =

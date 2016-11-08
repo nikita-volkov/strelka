@@ -4,7 +4,7 @@ import Router.Prelude
 
 
 data Request =
-  Request !Method !Path !Query ![Header] !InputStream
+  Request !Method !Path !Query !(HashMap HeaderName HeaderValue) !InputStream
 
 data Response =
   Response !Status ![Header] !OutputStream
@@ -17,13 +17,19 @@ newtype Method =
 newtype Path =
   Path ByteString
 
-data Query =
-  Query !ByteString
+newtype Query =
+  Query ByteString
+
+data Header =
+  Header !HeaderName !HeaderValue
 
 -- |
--- Header key and value all in lower-case.
-data Header =
-  Header !ByteString !ByteString
+-- Header name in lower-case.
+newtype HeaderName =
+  HeaderName ByteString
+
+newtype HeaderValue =
+  HeaderValue ByteString
 
 newtype Status =
   Status Int
