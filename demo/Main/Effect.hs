@@ -6,7 +6,7 @@ import qualified Rebase.Data.HashSet as A
 
 
 newtype Effect a =
-  Effect (StateT (HashSet Int) IO a)
+  Effect (StateT (Numbers) IO a)
   deriving (Functor, Applicative, Monad, MonadIO)
 
 type Numbers =
@@ -29,4 +29,8 @@ deleteNumber x =
 
 authorize :: Text -> Text -> Effect Bool
 authorize username password =
+  undefined
+
+listCredentials :: Effect [(Text, Text)]
+listCredentials =
   undefined

@@ -2,6 +2,7 @@ module Main.ResponseBuilders where
 
 import Rebase.Prelude
 import Router.ResponseBuilder
+import qualified Rebase.Data.Text as A
 
 
 notFoundInHTML :: ResponseBuilder
@@ -28,13 +29,35 @@ putPassword :: Text -> ResponseBuilder
 putPassword username =
   undefined
 
-listUsersAsJSON :: [(Text, Text)] -> ResponseBuilder
-listUsersAsJSON users =
-  undefined
+listCredentialsAsJSON :: [(Text, Text)] -> ResponseBuilder
+listCredentialsAsJSON credentials =
+  json (fromString bodyString)
+  where
+    bodyString =
+      "[" <> foldMap credentialString credentials <> "]"
+      where
+        credentialString (username, password) =
+          "{" <> "\"username\":" <> usernameString <> "," <> "\"password\":" <> passwordString <> "}"
+          where
+            usernameString =
+              "\"" <> A.unpack username <> "\""
+            passwordString =
+              "\"" <> A.unpack password <> "\""
 
-listUsersAsHTML :: [(Text, Text)] -> ResponseBuilder
-listUsersAsHTML users =
-  undefined
+listCredentialsAsHTML :: [(Text, Text)] -> ResponseBuilder
+listCredentialsAsHTML credentials =
+  html (fromString bodyString)
+  where
+    bodyString =
+      "<ul>" <> foldMap credentialString credentials <> "</ul>"
+      where
+        credentialString (username, password) =
+          "<li>" <> usernameString <> ":" <> passwordString <> "</li>"
+          where
+            usernameString =
+              "<b>" <> A.unpack username <> "</b>"
+            passwordString =
+              A.unpack password
 
 listNumbersAsJSON :: [Int] -> ResponseBuilder
 listNumbersAsJSON numbers =
@@ -48,4 +71,5 @@ listNumbersAsHTML numbers =
   html body
   where
     body =
-      fromString (foldMap (\x -> "<p>" <> show x <> "</p>") numbers)
+      fromString ("<ul>" <> foldMap (\x -> "<li>" <> show x <> "</li>") numbers <> "</ul>")
+

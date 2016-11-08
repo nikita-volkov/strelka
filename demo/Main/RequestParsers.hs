@@ -17,7 +17,7 @@ type Route =
 top :: Route
 top =
   consumeSegmentIfIs "numbers" *> numbers <|>
-  consumeSegmentIfIs "users" *> users <|>
+  consumeSegmentIfIs "credentials" *> credentials <|>
   notFound
   where
     numbers =
@@ -49,22 +49,21 @@ top =
               where
                 onInt int =
                   lift (B.deleteNumber int) *> okay
-    users =
-      undefined
-    notFound =
-      ensureThatAcceptsHTML *> html <|>
-      text
+    credentials =
+      authorizing "" authorized
       where
-        html =
-          pure A.notFoundInHTML
-        text =
-          pure A.notFoundInText
+        authorized =
+          output <*> lift B.listCredentials
+          where
+            output =
+              ensureThatAcceptsHTML $> A.listCredentialsAsHTML <|>
+              ensureThatAcceptsJSON $> A.listCredentialsAsJSON
 
 -- |
 -- Reusable route for wrapping other routes with HTTP Authorization.
 authorizing :: ByteString -> Route -> Route
 authorizing realm authorized =
-  authorize *> authorized <|>
+  authorize *> (authorized <|> notFound) <|>
   unauthorized
   where
     authorize =
@@ -84,6 +83,16 @@ badRequest =
   ensureThatAcceptsHTML *> pure A.badRequestInHTML <|>
   ensureThatAcceptsText *> pure A.badRequestInText <|>
   pure C.badRequestStatus
+
+notFound :: Route
+notFound =
+  ensureThatAcceptsHTML *> html <|>
+  text
+  where
+    html =
+      pure A.notFoundInHTML
+    text =
+      pure A.notFoundInText
 
 consumingBodyAsInt :: (Int -> Route) -> Route
 consumingBodyAsInt onInt =
