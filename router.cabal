@@ -40,8 +40,6 @@ library
     library
   other-modules:
     Router.Prelude
-    Router.HeadersMap
-    Router.QueryMap
     Router.HTTPAuthorizationParser
   exposed-modules:
     Router.Model
