@@ -2,13 +2,16 @@ module Router.RequestParser where
 
 import Router.Prelude
 import Router.Model
-import qualified Data.ByteString as ByteString
-import qualified Data.ByteString.Lazy as ByteString.Lazy
+import qualified Data.ByteString as A
+import qualified Data.ByteString.Lazy as B
 import qualified ByteString.TreeBuilder as C
 import qualified Router.HTTPAuthorizationParser as D
 import qualified Router.ParamsParser as E
 import qualified Data.Attoparsec.ByteString as F
 import qualified Data.HashMap.Strict as G
+import qualified Ducers.Reducer as H
+import qualified Ducers.Producer as I
+import qualified Ducers.Attoparsec.Reducer as J
 
 
 newtype RequestParser m a =
@@ -159,7 +162,7 @@ checkIfAccepts contentType =
 
 getAuthorization :: Monad m => RequestParser m (Text, Text)
 getAuthorization =
-  getHeader "Authorization" >>= liftEither . D.basicCredentials
+  getHeader "authorization" >>= liftEither . D.basicCredentials
 
 
 -- * Params
@@ -172,6 +175,12 @@ getParamAsText name =
 
 -- * Body
 -------------------------
+
+getBodyProducer :: Monad m => RequestParser m (I.Producer IO ByteString)
+getBodyProducer =
+  do
+    Request _ _ _ _ (InputStream getChunk) <- RequestParser ask
+    return (I.interruptibleAction (fmap (mfilter (not . A.null) . pure) getChunk))
 
 consumeBody :: MonadIO m => (IO ByteString -> IO a) -> RequestParser m a
 consumeBody consume =
@@ -190,7 +199,7 @@ consumeBodyAsBytesBuilder =
           getChunk >>= onChunk
           where
             onChunk chunk =
-              if ByteString.null chunk
+              if A.null chunk
                 then return acc
                 else loop (acc <> C.byteString chunk)
 
@@ -198,17 +207,21 @@ consumeBodyAsStrictBytes :: MonadIO m => RequestParser m ByteString
 consumeBodyAsStrictBytes =
   fmap C.toByteString consumeBodyAsBytesBuilder
 
-consumeBodyAsLazyBytes :: MonadIO m => RequestParser m ByteString.Lazy.ByteString
+consumeBodyAsLazyBytes :: MonadIO m => RequestParser m B.ByteString
 consumeBodyAsLazyBytes =
   fmap C.toLazyByteString consumeBodyAsBytesBuilder
 
 -- |
 -- Consumes the input stream as an \"application/x-www-form-urlencoded\"
 -- association list of parameters.
-consumeBodyAsParams :: E.ParamsParser a -> RequestParser m a
+consumeBodyAsParams :: MonadIO m => E.ParamsParser a -> RequestParser m a
 consumeBodyAsParams (E.ParamsParser attoparsecParser) =
   consumeBodyWithAttoparsec attoparsecParser
 
-consumeBodyWithAttoparsec :: F.Parser a -> RequestParser m a
+consumeBodyWithAttoparsec :: MonadIO m => F.Parser a -> RequestParser m a
 consumeBodyWithAttoparsec parser =
-  undefined
+  consumeBodyWithReducer (J.bytesParser parser) >>= liftEither
+
+consumeBodyWithReducer :: MonadIO m => H.Reducer IO ByteString a -> RequestParser m a
+consumeBodyWithReducer reducer =
+  getBodyProducer >>= \producer -> liftIO (I.runOnReducer producer reducer)
