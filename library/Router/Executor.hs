@@ -16,4 +16,4 @@ route request route =
     segments =
       case request of
         Request _ (Path pathBytes) _ _ _ ->
-          C.splitOn "/" (D.decodeUtf8With E.lenientDecode pathBytes)
+          filter (not . C.null) (C.splitOn "/" (D.decodeUtf8With E.lenientDecode pathBytes))
