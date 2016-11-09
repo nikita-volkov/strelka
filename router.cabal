@@ -60,6 +60,7 @@ library
     bytestring >= 0.10 && < 0.11,
     text >= 1 && < 2,
     unordered-containers >= 0.2 && < 0.3,
+    hashable == 1.*,
     -- 
     semigroups >= 0.18 && < 0.19,
     mtl == 2.*,

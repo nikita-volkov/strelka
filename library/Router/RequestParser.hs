@@ -8,6 +8,7 @@ import qualified ByteString.TreeBuilder as C
 import qualified Router.HTTPAuthorizationParser as D
 import qualified Router.ParamsParser as E
 import qualified Data.Attoparsec.ByteString as F
+import qualified Data.HashMap.Strict as G
 
 
 newtype RequestParser m a =
@@ -122,27 +123,29 @@ ensureThatMethodIsDelete =
 
 -- |
 -- Lookup a header by name in lower-case.
-getHeader :: ByteString -> RequestParser m ByteString
+getHeader :: Monad m => ByteString -> RequestParser m ByteString
 getHeader name =
-  undefined
+  do
+    Request _ _ _ headers _ <- RequestParser ask
+    liftMaybe (fmap (\(HeaderValue value) -> value) (G.lookup (HeaderName name) headers))
 
 -- |
 -- Ensure that the request provides an Accept header,
 -- which includes the specified content type.
 -- Content type must be in lower-case.
-ensureThatAccepts :: ByteString -> RequestParser m ()
+ensureThatAccepts :: Monad m => ByteString -> RequestParser m ()
 ensureThatAccepts contentType =
-  undefined
+  trace "Mock up" (pure ())
 
-ensureThatAcceptsText :: RequestParser m ()
+ensureThatAcceptsText :: Monad m => RequestParser m ()
 ensureThatAcceptsText =
   ensureThatAccepts "text/plain"
 
-ensureThatAcceptsHTML :: RequestParser m ()
+ensureThatAcceptsHTML :: Monad m => RequestParser m ()
 ensureThatAcceptsHTML =
   ensureThatAccepts "text/html"
 
-ensureThatAcceptsJSON :: RequestParser m ()
+ensureThatAcceptsJSON :: Monad m => RequestParser m ()
 ensureThatAcceptsJSON =
   ensureThatAccepts "application/json"
 

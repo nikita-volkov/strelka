@@ -27,6 +27,7 @@ data Header =
 -- Header name in lower-case.
 newtype HeaderName =
   HeaderName ByteString
+  deriving (Eq, Ord, Hashable)
 
 newtype HeaderValue =
   HeaderValue ByteString

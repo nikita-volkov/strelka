@@ -54,6 +54,10 @@ import Data.ByteString as Exports (ByteString)
 -------------------------
 import Data.Text as Exports (Text)
 
+-- hashable
+-------------------------
+import Data.Hashable as Exports
+
 -- Utils
 -------------------------
 import qualified Data.ByteString as ByteString
