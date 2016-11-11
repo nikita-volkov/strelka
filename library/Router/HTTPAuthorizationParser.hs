@@ -2,7 +2,7 @@ module Router.HTTPAuthorizationParser
 where
 
 import Router.Prelude
-import qualified Codec.Binary.Base64 as A
+import qualified Data.ByteString.Base64 as A
 import qualified Data.Text as B
 import qualified Data.Text.Encoding as B
 import qualified Data.ByteString as C
@@ -19,9 +19,8 @@ basicCredentials =
       first adaptFailure .
       A.decode
       where
-        adaptFailure (parsed, unparsed) =
-          "Base64 decoding failure. Parsed bytes: " <> B.decodeLatin1 parsed <> ". " <>
-          "Unparsed bytes: " <> B.decodeLatin1 unparsed
+        adaptFailure string =
+          "Base64 decoding failure: " <> fromString string
     decodeText =
       first adaptFailure .
       B.decodeUtf8'
