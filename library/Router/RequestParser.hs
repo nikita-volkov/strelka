@@ -12,6 +12,7 @@ import qualified Data.HashMap.Strict as G
 import qualified Ducers.Reducer as H
 import qualified Ducers.Producer as I
 import qualified Ducers.Attoparsec.Reducer as J
+import qualified Network.HTTP.Media as K
 
 
 newtype RequestParser m a =
@@ -138,7 +139,8 @@ getHeader name =
 -- Content type must be in lower-case.
 ensureThatAccepts :: Monad m => ByteString -> RequestParser m ()
 ensureThatAccepts contentType =
-  trace "Mock up" (pure ())
+  checkIfAccepts contentType >>=
+  liftEither . bool (Left ("Unacceptable content-type: " <> fromString (show contentType))) (Right ())
 
 ensureThatAcceptsText :: Monad m => RequestParser m ()
 ensureThatAcceptsText =
@@ -156,9 +158,9 @@ ensureThatAcceptsJSON =
 -- Check whether the request provides an Accept header,
 -- which includes the specified content type.
 -- Content type must be in lower-case.
-checkIfAccepts :: ByteString -> RequestParser m Bool
+checkIfAccepts :: Monad m => ByteString -> RequestParser m Bool
 checkIfAccepts contentType =
-  undefined
+  liftM (isJust . K.matchAccept [contentType]) (getHeader "accept")
 
 getAuthorization :: Monad m => RequestParser m (Text, Text)
 getAuthorization =

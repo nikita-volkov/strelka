@@ -2,6 +2,15 @@ module Router.ResponseBuilder where
 
 import Router.Prelude
 import Router.Model
+import qualified Ducers.Producer as A
+import qualified Ducers.Reducer as B
+import qualified Data.ByteString as C
+import qualified Data.ByteString.Lazy as D
+import qualified Data.ByteString.Builder as E
+import qualified Data.Text.Encoding as H
+import qualified Data.Text.Lazy as F
+import qualified Data.Text.Lazy.Encoding as I
+import qualified Data.Text.Lazy.Builder as J
 
 
 newtype ResponseBuilder =
@@ -31,6 +40,34 @@ status x =
 body :: OutputStream -> ResponseBuilder
 body x =
   ResponseBuilder (\(Response status headers _) -> Response status headers x) 
+
+bodyFromProducer :: A.Producer IO ByteString -> ResponseBuilder
+bodyFromProducer x =
+  body (OutputStream (\consume flush -> A.runOnReducer x (B.consumeAndFlush consume flush)))
+
+bodyFromBytes :: ByteString -> ResponseBuilder
+bodyFromBytes x =
+  body (OutputStream (\consume flush -> consume x *> flush))
+
+bodyFromLazyBytes :: D.ByteString -> ResponseBuilder
+bodyFromLazyBytes x =
+  body (OutputStream (\consume flush -> D.foldlChunks (\io chunk -> io >> consume chunk) (pure ()) x >> flush))
+
+bodyFromBytesBuilder :: E.Builder -> ResponseBuilder
+bodyFromBytesBuilder =
+  bodyFromLazyBytes . E.toLazyByteString
+
+bodyFromText :: Text -> ResponseBuilder
+bodyFromText =
+  bodyFromBytesBuilder . H.encodeUtf8Builder
+
+bodyFromLazyText :: F.Text -> ResponseBuilder
+bodyFromLazyText =
+  bodyFromBytesBuilder . I.encodeUtf8Builder
+
+bodyFromTextBuilder :: J.Builder -> ResponseBuilder
+bodyFromTextBuilder =
+  bodyFromLazyText . J.toLazyText
 
 
 -- * Predefined composites
