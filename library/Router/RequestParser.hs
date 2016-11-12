@@ -13,6 +13,10 @@ import qualified Ducers.Reducer as H
 import qualified Ducers.Producer as I
 import qualified Ducers.Attoparsec.Reducer as J
 import qualified Network.HTTP.Media as K
+import qualified Data.Text as N
+import qualified Data.Text.Lazy as L
+import qualified Data.Text.Lazy.Builder as M
+import qualified Data.Text.Encoding as O
 
 
 newtype RequestParser m a =
@@ -178,6 +182,12 @@ getParamAsText name =
 -- * Body
 -------------------------
 
+getBody :: Monad m => RequestParser m InputStream
+getBody =
+  do
+    Request _ _ _ _ x <- RequestParser ask
+    return x
+
 getBodyProducer :: Monad m => RequestParser m (I.Producer IO ByteString)
 getBodyProducer =
   do
@@ -190,28 +200,55 @@ consumeBody consume =
     Request _ _ _ _ (InputStream getChunk) <- RequestParser ask
     liftIO (consume getChunk)
 
-consumeBodyAsBytesBuilder :: MonadIO m => RequestParser m C.Builder
-consumeBodyAsBytesBuilder =
+consumeBodyFolding :: (MonadIO m) => (a -> ByteString -> a) -> a -> RequestParser m a
+consumeBodyFolding step init =
   consumeBody consumer
   where
     consumer getChunk =
-      loop mempty
+      recur init
       where
-        loop acc =
+        recur acc =
           getChunk >>= onChunk
           where
             onChunk chunk =
               if A.null chunk
                 then return acc
-                else loop (acc <> C.byteString chunk)
+                else recur (step acc chunk)
 
-consumeBodyAsStrictBytes :: MonadIO m => RequestParser m ByteString
-consumeBodyAsStrictBytes =
+consumeBodyBuilding :: (MonadIO m, Monoid builder) => (ByteString -> builder) -> RequestParser m builder
+consumeBodyBuilding proj =
+  consumeBodyFolding (\l r -> mappend l (proj r)) mempty
+
+consumeBodyAsBytes :: MonadIO m => RequestParser m ByteString
+consumeBodyAsBytes =
   fmap C.toByteString consumeBodyAsBytesBuilder
 
 consumeBodyAsLazyBytes :: MonadIO m => RequestParser m B.ByteString
 consumeBodyAsLazyBytes =
   fmap C.toLazyByteString consumeBodyAsBytesBuilder
+
+consumeBodyAsBytesBuilder :: MonadIO m => RequestParser m C.Builder
+consumeBodyAsBytesBuilder =
+  consumeBodyBuilding C.byteString
+
+consumeBodyAsText :: MonadIO m => RequestParser m Text
+consumeBodyAsText =
+  fmap L.toStrict consumeBodyAsLazyText
+
+consumeBodyAsLazyText :: MonadIO m => RequestParser m L.Text
+consumeBodyAsLazyText =
+  fmap M.toLazyText consumeBodyAsTextBuilder
+
+consumeBodyAsTextBuilder :: MonadIO m => RequestParser m M.Builder
+consumeBodyAsTextBuilder =
+  fmap fst (consumeBodyFolding step init)
+  where
+    step (builder, decode) bytes =
+      case decode bytes of
+        O.Some decodedChunk _ newDecode ->
+          (builder <> M.fromText decodedChunk, newDecode)
+    init =
+      (mempty, O.streamDecodeUtf8)
 
 -- |
 -- Consumes the input stream as an \"application/x-www-form-urlencoded\"
