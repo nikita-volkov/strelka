@@ -13,12 +13,15 @@ data Response =
 -- HTTP Method in lower-case.
 newtype Method =
   Method ByteString
+  deriving (IsString, Show, Eq, Ord, Hashable)
 
 newtype Path =
   Path ByteString
+  deriving (IsString, Show, Eq, Ord, Hashable)
 
 newtype Query =
   Query ByteString
+  deriving (IsString, Show, Eq, Ord, Hashable)
 
 data Header =
   Header !HeaderName !HeaderValue
@@ -27,10 +30,11 @@ data Header =
 -- Header name in lower-case.
 newtype HeaderName =
   HeaderName ByteString
-  deriving (Eq, Ord, Hashable)
+  deriving (IsString, Show, Eq, Ord, Hashable)
 
 newtype HeaderValue =
   HeaderValue ByteString
+  deriving (IsString, Show, Eq, Ord, Hashable)
 
 newtype Status =
   Status Int
