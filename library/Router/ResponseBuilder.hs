@@ -25,7 +25,7 @@ instance Semigroup ResponseBuilder
 
 run :: ResponseBuilder -> Response
 run (ResponseBuilder fn) =
-  fn (Response (Status 200) [] (OutputStream (const (const (pure ())))))
+  fn (Response (Status 200) [] (ResponseBody (const (const (pure ())))))
 
 header :: ByteString -> ByteString -> ResponseBuilder
 header name value =
@@ -35,17 +35,17 @@ status :: Int -> ResponseBuilder
 status x =
   ResponseBuilder (\(Response _ headers body) -> Response (Status x) headers body)
 
-body :: OutputStream -> ResponseBuilder
+body :: ResponseBody -> ResponseBuilder
 body x =
   ResponseBuilder (\(Response status headers _) -> Response status headers x) 
 
 bodyFromBytes :: ByteString -> ResponseBuilder
 bodyFromBytes x =
-  body (OutputStream (\consume flush -> consume x *> flush))
+  body (ResponseBody (\consume flush -> consume x *> flush))
 
 bodyFromLazyBytes :: D.ByteString -> ResponseBuilder
 bodyFromLazyBytes x =
-  body (OutputStream (\consume flush -> D.foldlChunks (\io chunk -> io >> consume chunk) (pure ()) x >> flush))
+  body (ResponseBody (\consume flush -> D.foldlChunks (\io chunk -> io >> consume chunk) (pure ()) x >> flush))
 
 bodyFromBytesBuilder :: E.Builder -> ResponseBuilder
 bodyFromBytesBuilder =
@@ -103,15 +103,15 @@ internalErrorStatus :: ResponseBuilder
 internalErrorStatus =
   status 500
 
-text :: OutputStream -> ResponseBuilder
+text :: ResponseBody -> ResponseBuilder
 text x =
   contentTypeOfText <> body x
 
-html :: OutputStream -> ResponseBuilder
+html :: ResponseBody -> ResponseBuilder
 html x =
   contentTypeOfHTML <> body x
 
-json :: OutputStream -> ResponseBuilder
+json :: ResponseBody -> ResponseBuilder
 json x =
   contentTypeOfJSON <> body x
 

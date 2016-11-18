@@ -177,7 +177,7 @@ getParamAsText name =
 -- * Body
 -------------------------
 
-getBody :: Monad m => RequestParser m InputStream
+getBody :: Monad m => RequestParser m RequestBody
 getBody =
   do
     Request _ _ _ _ x <- RequestParser ask
@@ -186,7 +186,7 @@ getBody =
 consumeBody :: MonadIO m => (IO ByteString -> IO a) -> RequestParser m a
 consumeBody consume =
   do
-    InputStream getChunk <- getBody
+    RequestBody getChunk <- getBody
     liftIO (consume getChunk)
 
 consumeBodyWithRequestBodyConsumer :: MonadIO m => P.RequestBodyConsumer a -> RequestParser m a
