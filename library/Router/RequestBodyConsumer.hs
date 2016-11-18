@@ -17,6 +17,12 @@ newtype RequestBodyConsumer a =
   RequestBodyConsumer (IO ByteString -> IO a)
   deriving (Functor)
 
+-- |
+-- Ignore the request body, producing the specified value.
+ignoring :: a -> RequestBodyConsumer a
+ignoring x =
+  RequestBodyConsumer (const (return x))
+
 folding :: (a -> ByteString -> a) -> a -> RequestBodyConsumer a
 folding step init =
   RequestBodyConsumer consumer
