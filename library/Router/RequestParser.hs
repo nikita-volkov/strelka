@@ -9,7 +9,7 @@ import qualified Data.Text.Lazy.Builder as M
 import qualified Data.Attoparsec.ByteString as F
 import qualified Data.HashMap.Strict as G
 import qualified Network.HTTP.Media as K
-import qualified Router.InputStreamConsumer as P
+import qualified Router.RequestBodyConsumer as P
 import qualified Router.HTTPAuthorizationParser as D
 import qualified Router.ParamsParser as E
 
@@ -189,49 +189,49 @@ consumeBody consume =
     InputStream getChunk <- getBody
     liftIO (consume getChunk)
 
-consumeBodyWithInputStreamConsumer :: MonadIO m => P.InputStreamConsumer a -> RequestParser m a
-consumeBodyWithInputStreamConsumer (P.InputStreamConsumer consume) =
+consumeBodyWithRequestBodyConsumer :: MonadIO m => P.RequestBodyConsumer a -> RequestParser m a
+consumeBodyWithRequestBodyConsumer (P.RequestBodyConsumer consume) =
   consumeBody consume
 
 consumeBodyFolding :: MonadIO m => (a -> ByteString -> a) -> a -> RequestParser m a
 consumeBodyFolding step init =
-  consumeBodyWithInputStreamConsumer (P.folding step init)
+  consumeBodyWithRequestBodyConsumer (P.folding step init)
 
 consumeBodyBuilding :: (MonadIO m, Monoid builder) => (ByteString -> builder) -> RequestParser m builder
 consumeBodyBuilding proj =
-  consumeBodyWithInputStreamConsumer (P.building proj)
+  consumeBodyWithRequestBodyConsumer (P.building proj)
 
 consumeBodyAsBytes :: MonadIO m => RequestParser m ByteString
 consumeBodyAsBytes =
-  consumeBodyWithInputStreamConsumer P.bytes
+  consumeBodyWithRequestBodyConsumer P.bytes
 
 consumeBodyAsLazyBytes :: MonadIO m => RequestParser m B.ByteString
 consumeBodyAsLazyBytes =
-  consumeBodyWithInputStreamConsumer P.lazyBytes
+  consumeBodyWithRequestBodyConsumer P.lazyBytes
 
 consumeBodyAsBytesBuilder :: MonadIO m => RequestParser m C.Builder
 consumeBodyAsBytesBuilder =
-  consumeBodyWithInputStreamConsumer P.bytesBuilder
+  consumeBodyWithRequestBodyConsumer P.bytesBuilder
 
 consumeBodyAsText :: MonadIO m => RequestParser m Text
 consumeBodyAsText =
-  consumeBodyWithInputStreamConsumer P.text
+  consumeBodyWithRequestBodyConsumer P.text
 
 consumeBodyAsLazyText :: MonadIO m => RequestParser m L.Text
 consumeBodyAsLazyText =
-  consumeBodyWithInputStreamConsumer P.lazyText
+  consumeBodyWithRequestBodyConsumer P.lazyText
 
 consumeBodyAsTextBuilder :: MonadIO m => RequestParser m M.Builder
 consumeBodyAsTextBuilder =
-  consumeBodyWithInputStreamConsumer P.textBuilder
+  consumeBodyWithRequestBodyConsumer P.textBuilder
 
 -- |
 -- Consumes the input stream as an \"application/x-www-form-urlencoded\"
 -- association list of parameters.
 consumeBodyAsParams :: MonadIO m => E.ParamsParser a -> RequestParser m a
 consumeBodyAsParams paramsParser =
-  consumeBodyWithInputStreamConsumer (P.paramsParser paramsParser) >>= liftEither
+  consumeBodyWithRequestBodyConsumer (P.paramsParser paramsParser) >>= liftEither
 
 consumeBodyWithAttoparsec :: MonadIO m => F.Parser a -> RequestParser m a
 consumeBodyWithAttoparsec parser =
-  consumeBodyWithInputStreamConsumer (P.attoparsecBytesParser parser) >>= liftEither
+  consumeBodyWithRequestBodyConsumer (P.attoparsecBytesParser parser) >>= liftEither

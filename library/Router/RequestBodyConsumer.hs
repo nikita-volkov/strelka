@@ -1,4 +1,4 @@
-module Router.InputStreamConsumer where
+module Router.RequestBodyConsumer where
 
 import Router.Prelude
 import Router.Model
@@ -13,13 +13,13 @@ import qualified Data.Text.Lazy.Builder
 import qualified Router.ParamsParser
 
 
-newtype InputStreamConsumer a =
-  InputStreamConsumer (IO ByteString -> IO a)
+newtype RequestBodyConsumer a =
+  RequestBodyConsumer (IO ByteString -> IO a)
   deriving (Functor)
 
-folding :: (a -> ByteString -> a) -> a -> InputStreamConsumer a
+folding :: (a -> ByteString -> a) -> a -> RequestBodyConsumer a
 folding step init =
-  InputStreamConsumer consumer
+  RequestBodyConsumer consumer
   where
     consumer getChunk =
       recur init
@@ -32,31 +32,31 @@ folding step init =
                 then return acc
                 else recur (step acc chunk)
 
-building :: Monoid builder => (ByteString -> builder) -> InputStreamConsumer builder
+building :: Monoid builder => (ByteString -> builder) -> RequestBodyConsumer builder
 building proj =
   folding (\l r -> mappend l (proj r)) mempty
 
-bytes :: InputStreamConsumer ByteString
+bytes :: RequestBodyConsumer ByteString
 bytes =
   fmap Data.ByteString.Lazy.toStrict lazyBytes
 
-lazyBytes :: InputStreamConsumer Data.ByteString.Lazy.ByteString
+lazyBytes :: RequestBodyConsumer Data.ByteString.Lazy.ByteString
 lazyBytes =
   fmap Data.ByteString.Builder.toLazyByteString bytesBuilder
 
-bytesBuilder :: InputStreamConsumer Data.ByteString.Builder.Builder
+bytesBuilder :: RequestBodyConsumer Data.ByteString.Builder.Builder
 bytesBuilder =
   building Data.ByteString.Builder.byteString
 
-text :: InputStreamConsumer Text
+text :: RequestBodyConsumer Text
 text =
   fmap Data.Text.Lazy.toStrict lazyText
 
-lazyText :: InputStreamConsumer Data.Text.Lazy.Text
+lazyText :: RequestBodyConsumer Data.Text.Lazy.Text
 lazyText =
   fmap Data.Text.Lazy.Builder.toLazyText textBuilder
 
-textBuilder :: InputStreamConsumer Data.Text.Lazy.Builder.Builder
+textBuilder :: RequestBodyConsumer Data.Text.Lazy.Builder.Builder
 textBuilder =
   fmap fst (folding step init)
   where
@@ -69,11 +69,11 @@ textBuilder =
 
 -- |
 -- Turn a bytes parser into an input stream consumer.
-attoparsecBytesParser :: Data.Attoparsec.ByteString.Parser a -> InputStreamConsumer (Either Text a)
+attoparsecBytesParser :: Data.Attoparsec.ByteString.Parser a -> RequestBodyConsumer (Either Text a)
 attoparsecBytesParser parser =
   attoparsecResult (Data.Attoparsec.ByteString.Partial (Data.Attoparsec.ByteString.parse parser))
 
-attoparsecResult :: Data.Attoparsec.ByteString.Result a -> InputStreamConsumer (Either Text a)
+attoparsecResult :: Data.Attoparsec.ByteString.Result a -> RequestBodyConsumer (Either Text a)
 attoparsecResult result =
   fmap finalise (folding step result)
   where
@@ -95,6 +95,6 @@ attoparsecResult result =
 -- |
 -- Consumes the input stream as an \"application/x-www-form-urlencoded\"
 -- association list of parameters.
-paramsParser :: Router.ParamsParser.ParamsParser a -> InputStreamConsumer (Either Text a)
+paramsParser :: Router.ParamsParser.ParamsParser a -> RequestBodyConsumer (Either Text a)
 paramsParser (Router.ParamsParser.ParamsParser p) =
   attoparsecBytesParser p

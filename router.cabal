@@ -41,7 +41,7 @@ library
   other-modules:
     Router.Prelude
     Router.HTTPAuthorizationParser
-    Router.InputStreamConsumer
+    Router.RequestBodyConsumer
   exposed-modules:
     Router.Model
     Router.RequestParser
