@@ -42,6 +42,7 @@ library
   other-modules:
     Router.Prelude
     Router.HTTPAuthorizationParser
+    Router.ResponseBody
   exposed-modules:
     Router.Executor
     Router.Model
