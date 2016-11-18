@@ -9,9 +9,6 @@ import qualified Router.HTTPAuthorizationParser as D
 import qualified Router.ParamsParser as E
 import qualified Data.Attoparsec.ByteString as F
 import qualified Data.HashMap.Strict as G
-import qualified Ducers.Reducer as H
-import qualified Ducers.Producer as I
-import qualified Ducers.Attoparsec.Reducer as J
 import qualified Network.HTTP.Media as K
 import qualified Data.Text as N
 import qualified Data.Text.Lazy as L
@@ -188,12 +185,6 @@ getBody =
     Request _ _ _ _ x <- RequestParser ask
     return x
 
-getBodyProducer :: Monad m => RequestParser m (I.Producer IO ByteString)
-getBodyProducer =
-  do
-    Request _ _ _ _ (InputStream getChunk) <- RequestParser ask
-    return (I.interruptibleAction (fmap (mfilter (not . A.null) . pure) getChunk))
-
 consumeBody :: MonadIO m => (IO ByteString -> IO a) -> RequestParser m a
 consumeBody consume =
   do
@@ -259,8 +250,4 @@ consumeBodyAsParams (E.ParamsParser attoparsecParser) =
 
 consumeBodyWithAttoparsec :: MonadIO m => F.Parser a -> RequestParser m a
 consumeBodyWithAttoparsec parser =
-  consumeBodyWithReducer (J.bytesParser parser) >>= liftEither
-
-consumeBodyWithReducer :: MonadIO m => H.Reducer IO ByteString a -> RequestParser m a
-consumeBodyWithReducer reducer =
-  getBodyProducer >>= \producer -> liftIO (I.runOnReducer producer reducer)
+  undefined

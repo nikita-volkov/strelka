@@ -2,8 +2,6 @@ module Router.ResponseBuilder where
 
 import Router.Prelude
 import Router.Model
-import qualified Ducers.Producer as A
-import qualified Ducers.Reducer as B
 import qualified Data.ByteString as C
 import qualified Data.ByteString.Lazy as D
 import qualified Data.ByteString.Builder as E
@@ -40,10 +38,6 @@ status x =
 body :: OutputStream -> ResponseBuilder
 body x =
   ResponseBuilder (\(Response status headers _) -> Response status headers x) 
-
-bodyFromProducer :: A.Producer IO ByteString -> ResponseBuilder
-bodyFromProducer x =
-  body (OutputStream (\consume flush -> A.runOnReducer x (B.consumeAndFlush consume flush)))
 
 bodyFromBytes :: ByteString -> ResponseBuilder
 bodyFromBytes x =
