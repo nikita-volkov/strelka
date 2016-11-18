@@ -3,11 +3,12 @@ name:
 version:
   0.1
 synopsis:
-  Extremely flexible and composable WAI router
+  Extremely flexible and composable router
 description:
   An HTTP server can be defined as a request parser, which produces a response.
   As simple as that.
-  This library exploits that fact to produce a very simple API.
+  This library exploits that fact to produce a very simple API,
+  which can then be used on top of any server implementation.
 homepage:
   https://github.com/nikita-volkov/router
 bug-reports:
