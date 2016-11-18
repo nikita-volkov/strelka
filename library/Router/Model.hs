@@ -4,10 +4,10 @@ import Router.Prelude
 
 
 data Request =
-  Request !Method !Path !Query !(HashMap HeaderName HeaderValue) !RequestBody
+  Request !Method !Path !Query !(HashMap HeaderName HeaderValue) !InputStream
 
 data Response =
-  Response !Status ![Header] !ResponseBody
+  Response !Status ![Header] !OutputStream
 
 -- |
 -- HTTP Method in lower-case.
@@ -42,14 +42,14 @@ newtype Status =
 -- |
 -- IO action, which produces the next chunk.
 -- An empty chunk signals the end of the stream.
-newtype RequestBody =
-  RequestBody (IO ByteString)
+newtype InputStream =
+  InputStream (IO ByteString)
 
 -- |
 -- A function on a chunk consuming and flushing IO actions.
-newtype ResponseBody =
-  ResponseBody ((ByteString -> IO ()) -> IO () -> IO ())
+newtype OutputStream =
+  OutputStream ((ByteString -> IO ()) -> IO () -> IO ())
 
-instance IsString ResponseBody where
+instance IsString OutputStream where
   fromString string =
-    ResponseBody (\sendChunk flush -> sendChunk (fromString string) >> flush)
+    OutputStream (\sendChunk flush -> sendChunk (fromString string) >> flush)
