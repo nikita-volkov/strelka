@@ -1,4 +1,4 @@
-module Router.RequestParser where
+module Router.RequestHeadParser where
 
 import Router.Prelude
 import Router.Model
@@ -14,29 +14,29 @@ import qualified Router.HTTPAuthorizationParser as D
 import qualified Router.ParamsParser as E
 
 
-newtype RequestParser m a =
-  RequestParser (ReaderT Request (StateT [Text] (ExceptT Text m)) a)
+newtype RequestHeadParser m a =
+  RequestHeadParser (ReaderT Request (StateT [Text] (ExceptT Text m)) a)
   deriving (Functor, Applicative, Monad, Alternative, MonadPlus, MonadError Text)
 
-instance MonadIO m => MonadIO (RequestParser m) where
+instance MonadIO m => MonadIO (RequestHeadParser m) where
   liftIO io =
-    RequestParser ((lift . lift . ExceptT . fmap (either (Left . fromString . show) Right) . liftIO . trySE) io)
+    RequestHeadParser ((lift . lift . ExceptT . fmap (either (Left . fromString . show) Right) . liftIO . trySE) io)
     where
       trySE :: IO a -> IO (Either SomeException a)
       trySE =
         Router.Prelude.try
 
-instance MonadTrans RequestParser where
+instance MonadTrans RequestHeadParser where
   lift m =
-    RequestParser (lift (lift (lift m)))
+    RequestHeadParser (lift (lift (lift m)))
 
-run :: RequestParser m a -> Request -> [Text] -> m (Either Text (a, [Text]))
-run (RequestParser impl) request segments =
+run :: RequestHeadParser m a -> Request -> [Text] -> m (Either Text (a, [Text]))
+run (RequestHeadParser impl) request segments =
   runExceptT (runStateT (runReaderT impl request) segments)
 
-failure :: Monad m => Text -> RequestParser m a
+failure :: Monad m => Text -> RequestHeadParser m a
 failure message =
-  RequestParser $
+  RequestHeadParser $
   lift $
   lift $
   ExceptT $
@@ -44,20 +44,20 @@ failure message =
   Left $
   message
 
-liftEither :: Monad m => Either Text a -> RequestParser m a
+liftEither :: Monad m => Either Text a -> RequestHeadParser m a
 liftEither =
-  RequestParser .
+  RequestHeadParser .
   lift .
   lift .
   ExceptT .
   return
 
-liftMaybe :: Monad m => Maybe a -> RequestParser m a
+liftMaybe :: Monad m => Maybe a -> RequestHeadParser m a
 liftMaybe =
   liftEither .
   maybe (Left "Unexpected Nothing") Right
 
-unliftEither :: Monad m => RequestParser m a -> RequestParser m (Either Text a)
+unliftEither :: Monad m => RequestHeadParser m a -> RequestHeadParser m (Either Text a)
 unliftEither =
   tryError
 
@@ -67,9 +67,9 @@ unliftEither =
 
 -- |
 -- Consume the next segment of the path.
-consumeSegment :: Monad m => RequestParser m Text
+consumeSegment :: Monad m => RequestHeadParser m Text
 consumeSegment =
-  RequestParser $
+  RequestHeadParser $
   lift $
   StateT $
   \case
@@ -78,45 +78,45 @@ consumeSegment =
     _ ->
       ExceptT (return (Left "No segments left"))
 
-consumeSegmentIfIs :: Monad m => Text -> RequestParser m ()
+consumeSegmentIfIs :: Monad m => Text -> RequestHeadParser m ()
 consumeSegmentIfIs expectedSegment =
   do
     segment <- consumeSegment
     guard (segment == expectedSegment)
 
-ensureThatNoSegmentsIsLeft :: Monad m => RequestParser m ()
+ensureThatNoSegmentsIsLeft :: Monad m => RequestHeadParser m ()
 ensureThatNoSegmentsIsLeft =
-  RequestParser (lift (gets null)) >>= guard
+  RequestHeadParser (lift (gets null)) >>= guard
 
 
 -- * Methods
 -------------------------
 
-getMethod :: Monad m => RequestParser m ByteString
+getMethod :: Monad m => RequestHeadParser m ByteString
 getMethod =
   do
-    Request (Method method) _ _ _ _ <- RequestParser ask
+    Request (Method method) _ _ _ _ <- RequestHeadParser ask
     return method
 
-ensureThatMethodIs :: Monad m => ByteString -> RequestParser m ()
+ensureThatMethodIs :: Monad m => ByteString -> RequestHeadParser m ()
 ensureThatMethodIs expectedMethod =
   do
     method <- getMethod
     guard (expectedMethod == method)
 
-ensureThatMethodIsGet :: Monad m => RequestParser m ()
+ensureThatMethodIsGet :: Monad m => RequestHeadParser m ()
 ensureThatMethodIsGet =
   ensureThatMethodIs "get"
 
-ensureThatMethodIsPost :: Monad m => RequestParser m ()
+ensureThatMethodIsPost :: Monad m => RequestHeadParser m ()
 ensureThatMethodIsPost =
   ensureThatMethodIs "post"
 
-ensureThatMethodIsPut :: Monad m => RequestParser m ()
+ensureThatMethodIsPut :: Monad m => RequestHeadParser m ()
 ensureThatMethodIsPut =
   ensureThatMethodIs "put"
 
-ensureThatMethodIsDelete :: Monad m => RequestParser m ()
+ensureThatMethodIsDelete :: Monad m => RequestHeadParser m ()
 ensureThatMethodIsDelete =
   ensureThatMethodIs "delete"
 
@@ -126,30 +126,30 @@ ensureThatMethodIsDelete =
 
 -- |
 -- Lookup a header by name in lower-case.
-getHeader :: Monad m => ByteString -> RequestParser m ByteString
+getHeader :: Monad m => ByteString -> RequestHeadParser m ByteString
 getHeader name =
   do
-    Request _ _ _ headers _ <- RequestParser ask
+    Request _ _ _ headers _ <- RequestHeadParser ask
     liftMaybe (fmap (\(HeaderValue value) -> value) (G.lookup (HeaderName name) headers))
 
 -- |
 -- Ensure that the request provides an Accept header,
 -- which includes the specified content type.
 -- Content type must be in lower-case.
-ensureThatAccepts :: Monad m => ByteString -> RequestParser m ()
+ensureThatAccepts :: Monad m => ByteString -> RequestHeadParser m ()
 ensureThatAccepts contentType =
   checkIfAccepts contentType >>=
   liftEither . bool (Left ("Unacceptable content-type: " <> fromString (show contentType))) (Right ())
 
-ensureThatAcceptsText :: Monad m => RequestParser m ()
+ensureThatAcceptsText :: Monad m => RequestHeadParser m ()
 ensureThatAcceptsText =
   ensureThatAccepts "text/plain"
 
-ensureThatAcceptsHTML :: Monad m => RequestParser m ()
+ensureThatAcceptsHTML :: Monad m => RequestHeadParser m ()
 ensureThatAcceptsHTML =
   ensureThatAccepts "text/html"
 
-ensureThatAcceptsJSON :: Monad m => RequestParser m ()
+ensureThatAcceptsJSON :: Monad m => RequestHeadParser m ()
 ensureThatAcceptsJSON =
   ensureThatAccepts "application/json"
 
@@ -157,11 +157,11 @@ ensureThatAcceptsJSON =
 -- Check whether the request provides an Accept header,
 -- which includes the specified content type.
 -- Content type must be in lower-case.
-checkIfAccepts :: Monad m => ByteString -> RequestParser m Bool
+checkIfAccepts :: Monad m => ByteString -> RequestHeadParser m Bool
 checkIfAccepts contentType =
   liftM (isJust . K.matchAccept [contentType]) (getHeader "accept")
 
-getAuthorization :: Monad m => RequestParser m (Text, Text)
+getAuthorization :: Monad m => RequestHeadParser m (Text, Text)
 getAuthorization =
   getHeader "authorization" >>= liftEither . D.basicCredentials
 
@@ -169,7 +169,7 @@ getAuthorization =
 -- * Params
 -------------------------
 
-getParamAsText :: Text -> RequestParser m Text
+getParamAsText :: Text -> RequestHeadParser m Text
 getParamAsText name =
   undefined
 
@@ -177,61 +177,61 @@ getParamAsText name =
 -- * Body
 -------------------------
 
-getBody :: Monad m => RequestParser m RequestBody
+getBody :: Monad m => RequestHeadParser m RequestBody
 getBody =
   do
-    Request _ _ _ _ x <- RequestParser ask
+    Request _ _ _ _ x <- RequestHeadParser ask
     return x
 
-consumeBody :: MonadIO m => (IO ByteString -> IO a) -> RequestParser m a
+consumeBody :: MonadIO m => (IO ByteString -> IO a) -> RequestHeadParser m a
 consumeBody consume =
   do
     RequestBody getChunk <- getBody
     liftIO (consume getChunk)
 
-consumeBodyWithRequestBodyConsumer :: MonadIO m => P.RequestBodyConsumer a -> RequestParser m a
+consumeBodyWithRequestBodyConsumer :: MonadIO m => P.RequestBodyConsumer a -> RequestHeadParser m a
 consumeBodyWithRequestBodyConsumer (P.RequestBodyConsumer consume) =
   consumeBody consume
 
-consumeBodyFolding :: MonadIO m => (a -> ByteString -> a) -> a -> RequestParser m a
+consumeBodyFolding :: MonadIO m => (a -> ByteString -> a) -> a -> RequestHeadParser m a
 consumeBodyFolding step init =
   consumeBodyWithRequestBodyConsumer (P.folding step init)
 
-consumeBodyBuilding :: (MonadIO m, Monoid builder) => (ByteString -> builder) -> RequestParser m builder
+consumeBodyBuilding :: (MonadIO m, Monoid builder) => (ByteString -> builder) -> RequestHeadParser m builder
 consumeBodyBuilding proj =
   consumeBodyWithRequestBodyConsumer (P.building proj)
 
-consumeBodyAsBytes :: MonadIO m => RequestParser m ByteString
+consumeBodyAsBytes :: MonadIO m => RequestHeadParser m ByteString
 consumeBodyAsBytes =
   consumeBodyWithRequestBodyConsumer P.bytes
 
-consumeBodyAsLazyBytes :: MonadIO m => RequestParser m B.ByteString
+consumeBodyAsLazyBytes :: MonadIO m => RequestHeadParser m B.ByteString
 consumeBodyAsLazyBytes =
   consumeBodyWithRequestBodyConsumer P.lazyBytes
 
-consumeBodyAsBytesBuilder :: MonadIO m => RequestParser m C.Builder
+consumeBodyAsBytesBuilder :: MonadIO m => RequestHeadParser m C.Builder
 consumeBodyAsBytesBuilder =
   consumeBodyWithRequestBodyConsumer P.bytesBuilder
 
-consumeBodyAsText :: MonadIO m => RequestParser m Text
+consumeBodyAsText :: MonadIO m => RequestHeadParser m Text
 consumeBodyAsText =
   consumeBodyWithRequestBodyConsumer P.text
 
-consumeBodyAsLazyText :: MonadIO m => RequestParser m L.Text
+consumeBodyAsLazyText :: MonadIO m => RequestHeadParser m L.Text
 consumeBodyAsLazyText =
   consumeBodyWithRequestBodyConsumer P.lazyText
 
-consumeBodyAsTextBuilder :: MonadIO m => RequestParser m M.Builder
+consumeBodyAsTextBuilder :: MonadIO m => RequestHeadParser m M.Builder
 consumeBodyAsTextBuilder =
   consumeBodyWithRequestBodyConsumer P.textBuilder
 
 -- |
 -- Consumes the input stream as an \"application/x-www-form-urlencoded\"
 -- association list of parameters.
-consumeBodyAsParams :: MonadIO m => E.ParamsParser a -> RequestParser m a
+consumeBodyAsParams :: MonadIO m => E.ParamsParser a -> RequestHeadParser m a
 consumeBodyAsParams paramsParser =
   consumeBodyWithRequestBodyConsumer (P.paramsParser paramsParser) >>= liftEither
 
-consumeBodyWithAttoparsec :: MonadIO m => F.Parser a -> RequestParser m a
+consumeBodyWithAttoparsec :: MonadIO m => F.Parser a -> RequestHeadParser m a
 consumeBodyWithAttoparsec parser =
   consumeBodyWithRequestBodyConsumer (P.attoparsecBytesParser parser) >>= liftEither
