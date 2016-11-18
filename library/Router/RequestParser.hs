@@ -2,18 +2,16 @@ module Router.RequestParser where
 
 import Router.Prelude
 import Router.Model
-import qualified Data.ByteString as A
 import qualified Data.ByteString.Lazy as B
-import qualified ByteString.TreeBuilder as C
-import qualified Router.HTTPAuthorizationParser as D
-import qualified Router.ParamsParser as E
+import qualified Data.ByteString.Lazy.Builder as C
+import qualified Data.Text.Lazy as L
+import qualified Data.Text.Lazy.Builder as M
 import qualified Data.Attoparsec.ByteString as F
 import qualified Data.HashMap.Strict as G
 import qualified Network.HTTP.Media as K
-import qualified Data.Text as N
-import qualified Data.Text.Lazy as L
-import qualified Data.Text.Lazy.Builder as M
-import qualified Data.Text.Encoding as O
+import qualified Router.InputStreamConsumer as P
+import qualified Router.HTTPAuthorizationParser as D
+import qualified Router.ParamsParser as E
 
 
 newtype RequestParser m a =
@@ -188,66 +186,52 @@ getBody =
 consumeBody :: MonadIO m => (IO ByteString -> IO a) -> RequestParser m a
 consumeBody consume =
   do
-    Request _ _ _ _ (InputStream getChunk) <- RequestParser ask
+    InputStream getChunk <- getBody
     liftIO (consume getChunk)
 
-consumeBodyFolding :: (MonadIO m) => (a -> ByteString -> a) -> a -> RequestParser m a
+consumeBodyWithInputStreamConsumer :: MonadIO m => P.InputStreamConsumer a -> RequestParser m a
+consumeBodyWithInputStreamConsumer (P.InputStreamConsumer consume) =
+  consumeBody consume
+
+consumeBodyFolding :: MonadIO m => (a -> ByteString -> a) -> a -> RequestParser m a
 consumeBodyFolding step init =
-  consumeBody consumer
-  where
-    consumer getChunk =
-      recur init
-      where
-        recur acc =
-          getChunk >>= onChunk
-          where
-            onChunk chunk =
-              if A.null chunk
-                then return acc
-                else recur (step acc chunk)
+  consumeBodyWithInputStreamConsumer (P.folding step init)
 
 consumeBodyBuilding :: (MonadIO m, Monoid builder) => (ByteString -> builder) -> RequestParser m builder
 consumeBodyBuilding proj =
-  consumeBodyFolding (\l r -> mappend l (proj r)) mempty
+  consumeBodyWithInputStreamConsumer (P.building proj)
 
 consumeBodyAsBytes :: MonadIO m => RequestParser m ByteString
 consumeBodyAsBytes =
-  fmap C.toByteString consumeBodyAsBytesBuilder
+  consumeBodyWithInputStreamConsumer P.bytes
 
 consumeBodyAsLazyBytes :: MonadIO m => RequestParser m B.ByteString
 consumeBodyAsLazyBytes =
-  fmap C.toLazyByteString consumeBodyAsBytesBuilder
+  consumeBodyWithInputStreamConsumer P.lazyBytes
 
 consumeBodyAsBytesBuilder :: MonadIO m => RequestParser m C.Builder
 consumeBodyAsBytesBuilder =
-  consumeBodyBuilding C.byteString
+  consumeBodyWithInputStreamConsumer P.bytesBuilder
 
 consumeBodyAsText :: MonadIO m => RequestParser m Text
 consumeBodyAsText =
-  fmap L.toStrict consumeBodyAsLazyText
+  consumeBodyWithInputStreamConsumer P.text
 
 consumeBodyAsLazyText :: MonadIO m => RequestParser m L.Text
 consumeBodyAsLazyText =
-  fmap M.toLazyText consumeBodyAsTextBuilder
+  consumeBodyWithInputStreamConsumer P.lazyText
 
 consumeBodyAsTextBuilder :: MonadIO m => RequestParser m M.Builder
 consumeBodyAsTextBuilder =
-  fmap fst (consumeBodyFolding step init)
-  where
-    step (builder, decode) bytes =
-      case decode bytes of
-        O.Some decodedChunk _ newDecode ->
-          (builder <> M.fromText decodedChunk, newDecode)
-    init =
-      (mempty, O.streamDecodeUtf8)
+  consumeBodyWithInputStreamConsumer P.textBuilder
 
 -- |
 -- Consumes the input stream as an \"application/x-www-form-urlencoded\"
 -- association list of parameters.
 consumeBodyAsParams :: MonadIO m => E.ParamsParser a -> RequestParser m a
-consumeBodyAsParams (E.ParamsParser attoparsecParser) =
-  consumeBodyWithAttoparsec attoparsecParser
+consumeBodyAsParams paramsParser =
+  consumeBodyWithInputStreamConsumer (P.paramsParser paramsParser) >>= liftEither
 
 consumeBodyWithAttoparsec :: MonadIO m => F.Parser a -> RequestParser m a
 consumeBodyWithAttoparsec parser =
-  undefined
+  consumeBodyWithInputStreamConsumer (P.attoparsecBytesParser parser) >>= liftEither
