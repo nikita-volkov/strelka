@@ -2,13 +2,7 @@ module Router.ResponseBuilder where
 
 import Router.Prelude
 import Router.Model
-import qualified Data.ByteString as C
-import qualified Data.ByteString.Lazy as D
-import qualified Data.ByteString.Builder as E
-import qualified Data.Text.Encoding as H
-import qualified Data.Text.Lazy as F
-import qualified Data.Text.Lazy.Encoding as I
-import qualified Data.Text.Lazy.Builder as J
+import qualified Router.ResponseBody as A
 
 
 newtype ResponseBuilder =
@@ -35,33 +29,9 @@ status :: Int -> ResponseBuilder
 status x =
   ResponseBuilder (\(Response _ headers body) -> Response (Status x) headers body)
 
-body :: OutputStream -> ResponseBuilder
-body x =
-  ResponseBuilder (\(Response status headers _) -> Response status headers x) 
-
-bodyFromBytes :: ByteString -> ResponseBuilder
-bodyFromBytes x =
-  body (OutputStream (\consume flush -> consume x *> flush))
-
-bodyFromLazyBytes :: D.ByteString -> ResponseBuilder
-bodyFromLazyBytes x =
-  body (OutputStream (\consume flush -> D.foldlChunks (\io chunk -> io >> consume chunk) (pure ()) x >> flush))
-
-bodyFromBytesBuilder :: E.Builder -> ResponseBuilder
-bodyFromBytesBuilder =
-  bodyFromLazyBytes . E.toLazyByteString
-
-bodyFromText :: Text -> ResponseBuilder
-bodyFromText =
-  bodyFromBytesBuilder . H.encodeUtf8Builder
-
-bodyFromLazyText :: F.Text -> ResponseBuilder
-bodyFromLazyText =
-  bodyFromBytesBuilder . I.encodeUtf8Builder
-
-bodyFromTextBuilder :: J.Builder -> ResponseBuilder
-bodyFromTextBuilder =
-  bodyFromLazyText . J.toLazyText
+body :: A.ResponseBody -> ResponseBuilder
+body (A.ResponseBody x) =
+  ResponseBuilder (\(Response status headers _) -> Response status headers (OutputStream x)) 
 
 
 -- * Predefined composites
@@ -103,15 +73,15 @@ internalErrorStatus :: ResponseBuilder
 internalErrorStatus =
   status 500
 
-text :: OutputStream -> ResponseBuilder
+text :: A.ResponseBody -> ResponseBuilder
 text x =
   contentTypeOfText <> body x
 
-html :: OutputStream -> ResponseBuilder
+html :: A.ResponseBody -> ResponseBuilder
 html x =
   contentTypeOfHTML <> body x
 
-json :: OutputStream -> ResponseBuilder
+json :: A.ResponseBody -> ResponseBuilder
 json x =
   contentTypeOfJSON <> body x
 
