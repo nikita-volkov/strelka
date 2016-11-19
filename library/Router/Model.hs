@@ -49,7 +49,3 @@ newtype InputStream =
 -- A function on a chunk consuming and flushing IO actions.
 newtype OutputStream =
   OutputStream ((ByteString -> IO ()) -> IO () -> IO ())
-
-instance IsString OutputStream where
-  fromString string =
-    OutputStream (\sendChunk flush -> sendChunk (fromString string) >> flush)
