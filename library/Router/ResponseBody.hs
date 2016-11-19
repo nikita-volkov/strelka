@@ -17,7 +17,7 @@ newtype ResponseBody =
 
 instance IsString ResponseBody where
   fromString string =
-    text (fromString string)
+    bytesBuilder (E.stringUtf8 string)
 
 bytes :: ByteString -> ResponseBody
 bytes x =
