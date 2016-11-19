@@ -10,14 +10,21 @@ import qualified Data.Text.Lazy.Encoding as I
 import qualified Data.Text.Lazy.Builder as J
 
 
--- |
--- A function on the chunk consuming and flushing IO actions.
 newtype ResponseBody =
   ResponseBody ((ByteString -> IO ()) -> IO () -> IO ())
 
 instance IsString ResponseBody where
   fromString string =
     bytesBuilder (E.stringUtf8 string)
+
+instance Monoid ResponseBody where
+  mempty =
+    ResponseBody (\_ flush -> flush)
+  mappend (ResponseBody cont1) (ResponseBody cont2) =
+    ResponseBody (\consume flush -> cont1 consume (pure ()) *> cont2 consume flush)
+
+instance Semigroup ResponseBody
+
 
 bytes :: ByteString -> ResponseBody
 bytes x =
