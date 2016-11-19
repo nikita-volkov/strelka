@@ -17,7 +17,7 @@ newtype ResponseBody =
 
 instance IsString ResponseBody where
   fromString string =
-    ResponseBody (\consume flush -> consume (fromString string) >> flush)
+    text (fromString string)
 
 bytes :: ByteString -> ResponseBody
 bytes x =
