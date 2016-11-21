@@ -11,7 +11,6 @@ import qualified Data.HashMap.Strict as G
 import qualified Network.HTTP.Media as K
 import qualified Router.RequestBodyConsumer as P
 import qualified Router.HTTPAuthorizationParser as D
-import qualified Router.ParamsParser as E
 
 
 newtype RequestParser m a =
@@ -224,13 +223,6 @@ consumeBodyAsLazyText =
 consumeBodyAsTextBuilder :: MonadIO m => RequestParser m M.Builder
 consumeBodyAsTextBuilder =
   consumeBodyWithRequestBodyConsumer P.textBuilder
-
--- |
--- Consumes the input stream as an \"application/x-www-form-urlencoded\"
--- association list of parameters.
-consumeBodyAsParams :: MonadIO m => E.ParamsParser a -> RequestParser m a
-consumeBodyAsParams paramsParser =
-  consumeBodyWithRequestBodyConsumer (P.paramsParser paramsParser) >>= liftEither
 
 consumeBodyWithAttoparsec :: MonadIO m => F.Parser a -> RequestParser m a
 consumeBodyWithAttoparsec parser =
