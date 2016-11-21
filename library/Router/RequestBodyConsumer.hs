@@ -10,6 +10,7 @@ import qualified Data.Text.Encoding
 import qualified Data.Text.Lazy
 import qualified Data.Text.Lazy.Encoding
 import qualified Data.Text.Lazy.Builder
+import qualified Router.ParamsParser
 
 
 newtype RequestBodyConsumer a =
@@ -96,3 +97,10 @@ attoparsecResult result =
           Right resultValue
         Data.Attoparsec.ByteString.Fail leftovers contexts message ->
           Left (fromString (intercalate " > " contexts <> ": " <> message))
+
+-- |
+-- Consumes the input stream as an \"application/x-www-form-urlencoded\"
+-- association list of parameters.
+paramsParser :: Router.ParamsParser.ParamsParser a -> RequestBodyConsumer (Either Text a)
+paramsParser (Router.ParamsParser.ParamsParser p) =
+  attoparsecBytesParser p
