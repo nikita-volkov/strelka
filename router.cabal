@@ -9,6 +9,10 @@ description:
   As simple as that.
   This library exploits that fact to produce a very simple API,
   which can then be used on top of any server implementation.
+  .
+  [Warning]
+  This library is currently in active development.
+  The API can change rapidly.
 homepage:
   https://github.com/nikita-volkov/router
 bug-reports:
