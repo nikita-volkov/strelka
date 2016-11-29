@@ -1,9 +1,9 @@
-module Router.Executor where
+module Strelka.Executor where
 
-import Router.Prelude
-import Router.Model
-import qualified Router.RequestParser as A
-import qualified Router.ResponseBuilder as B
+import Strelka.Prelude
+import Strelka.Model
+import qualified Strelka.RequestParser as A
+import qualified Strelka.ResponseBuilder as B
 import qualified Data.Text as C
 import qualified Data.Text.Encoding as D
 import qualified Data.Text.Encoding.Error as E

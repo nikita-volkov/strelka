@@ -1,6 +1,6 @@
-module Router.Model where
+module Strelka.Model where
 
-import Router.Prelude
+import Strelka.Prelude
 
 
 data Request =

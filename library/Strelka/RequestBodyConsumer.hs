@@ -1,7 +1,7 @@
-module Router.RequestBodyConsumer where
+module Strelka.RequestBodyConsumer where
 
-import Router.Prelude
-import Router.Model
+import Strelka.Prelude
+import Strelka.Model
 import qualified Data.Attoparsec.ByteString
 import qualified Data.ByteString
 import qualified Data.ByteString.Lazy

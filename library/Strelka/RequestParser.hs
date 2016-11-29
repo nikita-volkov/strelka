@@ -1,7 +1,7 @@
-module Router.RequestParser where
+module Strelka.RequestParser where
 
-import Router.Prelude
-import Router.Model
+import Strelka.Prelude
+import Strelka.Model
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Builder as C
 import qualified Data.Text.Lazy as L
@@ -9,8 +9,8 @@ import qualified Data.Text.Lazy.Builder as M
 import qualified Data.Attoparsec.ByteString as F
 import qualified Data.HashMap.Strict as G
 import qualified Network.HTTP.Media as K
-import qualified Router.RequestBodyConsumer as P
-import qualified Router.HTTPAuthorizationParser as D
+import qualified Strelka.RequestBodyConsumer as P
+import qualified Strelka.HTTPAuthorizationParser as D
 
 
 newtype RequestParser m a =
@@ -23,7 +23,7 @@ instance MonadIO m => MonadIO (RequestParser m) where
     where
       trySE :: IO a -> IO (Either SomeException a)
       trySE =
-        Router.Prelude.try
+        Strelka.Prelude.try
 
 instance MonadTrans RequestParser where
   lift m =

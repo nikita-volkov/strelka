@@ -1,4 +1,4 @@
-module Router.Prelude
+module Strelka.Prelude
 ( 
   module Exports,
   lowerCaseBytes_iso_8859_1,

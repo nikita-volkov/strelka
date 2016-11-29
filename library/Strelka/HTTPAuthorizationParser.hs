@@ -1,7 +1,7 @@
-module Router.HTTPAuthorizationParser 
+module Strelka.HTTPAuthorizationParser 
 where
 
-import Router.Prelude
+import Strelka.Prelude
 import qualified Data.ByteString.Base64 as A
 import qualified Data.Text as B
 import qualified Data.Text.Encoding as B

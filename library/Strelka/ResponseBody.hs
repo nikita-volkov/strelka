@@ -1,6 +1,6 @@
-module Router.ResponseBody where
+module Strelka.ResponseBody where
 
-import Router.Prelude
+import Strelka.Prelude
 import qualified Data.ByteString as C
 import qualified Data.ByteString.Lazy as D
 import qualified Data.ByteString.Builder as E

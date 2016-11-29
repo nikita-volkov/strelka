@@ -1,5 +1,5 @@
 name:
-  router
+  strelka
 version:
   0.3
 synopsis:
@@ -14,9 +14,9 @@ description:
   This library is currently in active development.
   The API can change rapidly.
 homepage:
-  https://github.com/nikita-volkov/router
+  https://github.com/nikita-volkov/strelka
 bug-reports:
-  https://github.com/nikita-volkov/router/issues 
+  https://github.com/nikita-volkov/strelka/issues 
 author:
   Nikita Volkov <nikita.y.volkov@mail.ru>
 maintainer:
@@ -37,22 +37,22 @@ source-repository head
   type:
     git
   location:
-    git://github.com/nikita-volkov/router.git
+    git://github.com/nikita-volkov/strelka.git
 
 
 library
   hs-source-dirs:
     library
   other-modules:
-    Router.Prelude
-    Router.HTTPAuthorizationParser
-    Router.RequestBodyConsumer
+    Strelka.Prelude
+    Strelka.HTTPAuthorizationParser
+    Strelka.RequestBodyConsumer
   exposed-modules:
-    Router.Model
-    Router.RequestParser
-    Router.ResponseBuilder
-    Router.ResponseBody
-    Router.Executor
+    Strelka.Model
+    Strelka.RequestParser
+    Strelka.ResponseBuilder
+    Strelka.ResponseBody
+    Strelka.Executor
   default-extensions:
     Arrows, BangPatterns, ConstraintKinds, DataKinds, DefaultSignatures, DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric, DeriveTraversable, EmptyDataDecls, FlexibleContexts, FlexibleInstances, FunctionalDependencies, GADTs, GeneralizedNewtypeDeriving, LambdaCase, LiberalTypeSynonyms, MagicHash, MultiParamTypeClasses, MultiWayIf, NoImplicitPrelude, NoMonomorphismRestriction, OverloadedStrings, PatternGuards, ParallelListComp, QuasiQuotes, RankNTypes, RecordWildCards, ScopedTypeVariables, StandaloneDeriving, TemplateHaskell, TupleSections, TypeFamilies, TypeOperators, UnboxedTuples
   default-language:
@@ -64,7 +64,7 @@ library
     attoparsec >= 0.13 && < 0.14,
     http-media >= 0.6.4 && < 0.7,
     -- 
-    bytestring >= 0.10 && < 0.11,
+    bytestring >= 0.10.8 && < 0.11,
     text >= 1 && < 2,
     unordered-containers >= 0.2 && < 0.3,
     hashable == 1.*,

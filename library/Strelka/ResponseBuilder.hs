@@ -1,8 +1,8 @@
-module Router.ResponseBuilder where
+module Strelka.ResponseBuilder where
 
-import Router.Prelude
-import Router.Model
-import qualified Router.ResponseBody as A
+import Strelka.Prelude
+import Strelka.Model
+import qualified Strelka.ResponseBody as A
 
 
 newtype ResponseBuilder =
