@@ -16,13 +16,13 @@ basicCredentials =
       maybe (Left "Not a basic authorization") Right .
       C.stripPrefix "Basic "
     decodeBase64 =
-      first adaptFailure .
+      mapLeft adaptFailure .
       A.decode
       where
         adaptFailure string =
           "Base64 decoding failure: " <> fromString string
     decodeText =
-      first adaptFailure .
+      mapLeft adaptFailure .
       B.decodeUtf8'
       where
         adaptFailure failure =
