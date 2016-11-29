@@ -4,9 +4,11 @@ import Strelka.Prelude
 import Strelka.Model
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Builder as C
+import qualified Data.Text as E
 import qualified Data.Text.Lazy as L
 import qualified Data.Text.Lazy.Builder as M
 import qualified Data.Attoparsec.ByteString as F
+import qualified Data.Attoparsec.Text as Q
 import qualified Data.HashMap.Strict as G
 import qualified Network.HTTP.Media as K
 import qualified Strelka.RequestBodyConsumer as P
@@ -76,6 +78,10 @@ consumeSegment =
       return (segmentsHead, segmentsTail)
     _ ->
       ExceptT (return (Left "No segments left"))
+
+consumeSegmentWithAttoparsec :: Monad m => Q.Parser a -> RequestParser m a
+consumeSegmentWithAttoparsec parser =
+  consumeSegment >>= liftEither . mapLeft E.pack . Q.parseOnly parser
 
 consumeSegmentIfIs :: Monad m => Text -> RequestParser m ()
 consumeSegmentIfIs expectedSegment =
