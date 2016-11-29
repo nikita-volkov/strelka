@@ -1,7 +1,7 @@
 name:
   strelka
 version:
-  0.3
+  0.4
 synopsis:
   Extremely flexible and composable router
 description:
