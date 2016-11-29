@@ -19,7 +19,7 @@ newtype RequestParser m a =
 
 instance MonadIO m => MonadIO (RequestParser m) where
   liftIO io =
-    RequestParser ((lift . lift . ExceptT . fmap (either (Left . fromString . show) Right) . liftIO . trySE) io)
+    RequestParser ((lift . lift . ExceptT . liftM (either (Left . fromString . show) Right) . liftIO . trySE) io)
     where
       trySE :: IO a -> IO (Either SomeException a)
       trySE =
@@ -129,7 +129,7 @@ getHeader :: Monad m => ByteString -> RequestParser m ByteString
 getHeader name =
   do
     Request _ _ _ headers _ <- RequestParser ask
-    liftMaybe (fmap (\(HeaderValue value) -> value) (G.lookup (HeaderName name) headers))
+    liftMaybe (liftM (\(HeaderValue value) -> value) (G.lookup (HeaderName name) headers))
 
 -- |
 -- Ensure that the request provides an Accept header,
