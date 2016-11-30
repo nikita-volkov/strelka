@@ -3,7 +3,6 @@ module Strelka.Prelude
   module Exports,
   lowerCaseBytes_iso_8859_1,
   tryError,
-  mapLeft,
 )
 where
 
@@ -42,6 +41,10 @@ import Control.Monad.Writer.Class as Exports
 -- semigroups
 -------------------------
 import Data.Semigroup as Exports
+
+-- bifunctors
+-------------------------
+import Data.Bifunctor as Exports
 
 -- unordered-containers
 -------------------------
@@ -82,7 +85,3 @@ lowerCaseBytes_iso_8859_1 =
 tryError :: MonadError e m => m a -> m (Either e a)
 tryError m =
   catchError (liftM Right m) (return . Left)
-
-mapLeft :: (l1 -> l2) -> Either l1 r -> Either l2 r
-mapLeft fn =
-  either (Left . fn) Right

@@ -69,6 +69,7 @@ library
     unordered-containers >= 0.2 && < 0.3,
     hashable == 1.*,
     -- 
+    bifunctors == 5.*,
     semigroups >= 0.18 && < 0.19,
     mtl == 2.*,
     monad-control >= 1 && < 2,

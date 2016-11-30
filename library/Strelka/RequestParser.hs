@@ -81,7 +81,7 @@ consumeSegment =
 
 consumeSegmentWithAttoparsec :: Monad m => Q.Parser a -> RequestParser m a
 consumeSegmentWithAttoparsec parser =
-  consumeSegment >>= liftEither . mapLeft E.pack . Q.parseOnly parser
+  consumeSegment >>= liftEither . first E.pack . Q.parseOnly parser
 
 consumeSegmentIfIs :: Monad m => Text -> RequestParser m ()
 consumeSegmentIfIs expectedSegment =
