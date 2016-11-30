@@ -2,7 +2,7 @@ module Strelka.ResponseBuilder where
 
 import Strelka.Prelude
 import Strelka.Model
-import qualified Strelka.ResponseBody as A
+import qualified Strelka.ResponseBodyBuilder as A
 
 
 newtype ResponseBuilder =
@@ -29,8 +29,8 @@ status :: Int -> ResponseBuilder
 status x =
   ResponseBuilder (\(Response _ headers body) -> Response (Status x) headers body)
 
-body :: A.ResponseBody -> ResponseBuilder
-body (A.ResponseBody x) =
+body :: A.ResponseBodyBuilder -> ResponseBuilder
+body (A.ResponseBodyBuilder x) =
   ResponseBuilder (\(Response status headers _) -> Response status headers (OutputStream x)) 
 
 
@@ -73,15 +73,15 @@ internalErrorStatus :: ResponseBuilder
 internalErrorStatus =
   status 500
 
-text :: A.ResponseBody -> ResponseBuilder
+text :: A.ResponseBodyBuilder -> ResponseBuilder
 text x =
   contentTypeOfText <> body x
 
-html :: A.ResponseBody -> ResponseBuilder
+html :: A.ResponseBodyBuilder -> ResponseBuilder
 html x =
   contentTypeOfHTML <> body x
 
-json :: A.ResponseBody -> ResponseBuilder
+json :: A.ResponseBodyBuilder -> ResponseBuilder
 json x =
   contentTypeOfJSON <> body x
 
