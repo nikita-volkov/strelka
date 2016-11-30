@@ -46,10 +46,10 @@ library
   other-modules:
     Strelka.Prelude
     Strelka.HTTPAuthorizationParser
-    Strelka.RequestBodyConsumer
   exposed-modules:
     Strelka.Model
     Strelka.RequestParser
+    Strelka.RequestBodyConsumer
     Strelka.ResponseBuilder
     Strelka.ResponseBody
     Strelka.Executor
