@@ -35,8 +35,8 @@ run :: RequestParser m a -> Request -> [Text] -> m (Either Text (a, [Text]))
 run (RequestParser impl) request segments =
   runExceptT (runStateT (runReaderT impl request) segments)
 
-failure :: Monad m => Text -> RequestParser m a
-failure message =
+fail :: Monad m => Text -> RequestParser m a
+fail message =
   RequestParser $
   lift $
   lift $
@@ -53,11 +53,15 @@ liftEither =
   ExceptT .
   return
 
+-- |
+-- 
 liftMaybe :: Monad m => Maybe a -> RequestParser m a
 liftMaybe =
   liftEither .
   maybe (Left "Unexpected Nothing") Right
 
+-- |
+-- Extract the error from RequestParser.
 unliftEither :: Monad m => RequestParser m a -> RequestParser m (Either Text a)
 unliftEither =
   tryError
@@ -79,8 +83,8 @@ consumeSegment =
     _ ->
       ExceptT (return (Left "No segments left"))
 
-consumeSegmentWithAttoparsec :: Monad m => Q.Parser a -> RequestParser m a
-consumeSegmentWithAttoparsec parser =
+consumeSegmentWithParser :: Monad m => Q.Parser a -> RequestParser m a
+consumeSegmentWithParser parser =
   consumeSegment >>= liftEither . first E.pack . Q.parseOnly parser
 
 consumeSegmentIfIs :: Monad m => Text -> RequestParser m ()
@@ -109,18 +113,30 @@ ensureThatMethodIs expectedMethod =
     method <- getMethod
     guard (expectedMethod == method)
 
+-- |
+-- Same as @ensureThatMethodIs "get"@.
+-- Exists for compile-time protection from typos.
 ensureThatMethodIsGet :: Monad m => RequestParser m ()
 ensureThatMethodIsGet =
   ensureThatMethodIs "get"
 
+-- |
+-- Same as @ensureThatMethodIs "post"@.
+-- Exists for compile-time protection from typos.
 ensureThatMethodIsPost :: Monad m => RequestParser m ()
 ensureThatMethodIsPost =
   ensureThatMethodIs "post"
 
+-- |
+-- Same as @ensureThatMethodIs "put"@.
+-- Exists for compile-time protection from typos.
 ensureThatMethodIsPut :: Monad m => RequestParser m ()
 ensureThatMethodIsPut =
   ensureThatMethodIs "put"
 
+-- |
+-- Same as @ensureThatMethodIs "delete"@.
+-- Exists for compile-time protection from typos.
 ensureThatMethodIsDelete :: Monad m => RequestParser m ()
 ensureThatMethodIsDelete =
   ensureThatMethodIs "delete"
@@ -146,14 +162,23 @@ ensureThatAccepts contentType =
   checkIfAccepts contentType >>=
   liftEither . bool (Left ("Unacceptable content-type: " <> fromString (show contentType))) (Right ())
 
+-- |
+-- Same as @ensureThatAccepts "text/plain"@.
+-- Exists for compile-time protection from typos.
 ensureThatAcceptsText :: Monad m => RequestParser m ()
 ensureThatAcceptsText =
   ensureThatAccepts "text/plain"
 
+-- |
+-- Same as @ensureThatAccepts "text/html"@.
+-- Exists for compile-time protection from typos.
 ensureThatAcceptsHTML :: Monad m => RequestParser m ()
 ensureThatAcceptsHTML =
   ensureThatAccepts "text/html"
 
+-- |
+-- Same as @ensureThatAccepts "application/json"@.
+-- Exists for compile-time protection from typos.
 ensureThatAcceptsJSON :: Monad m => RequestParser m ()
 ensureThatAcceptsJSON =
   ensureThatAccepts "application/json"
@@ -166,6 +191,8 @@ checkIfAccepts :: Monad m => ByteString -> RequestParser m Bool
 checkIfAccepts contentType =
   liftM (isJust . K.matchAccept [contentType]) (getHeader "accept")
 
+-- |
+-- Parse the username and password from the basic authorization header.
 getAuthorization :: Monad m => RequestParser m (Text, Text)
 getAuthorization =
   getHeader "authorization" >>= liftEither . D.basicCredentials
