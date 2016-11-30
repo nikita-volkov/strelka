@@ -26,8 +26,47 @@ ignoring :: a -> RequestBodyConsumer a
 ignoring x =
   RequestBodyConsumer (const (return x))
 
-folding :: (a -> ByteString -> a) -> a -> RequestBodyConsumer a
-folding step init =
+-- |
+-- Fold with support for early termination,
+-- which is interpreted from Left.
+foldBytesTerminating :: (a -> ByteString -> Either a a) -> a -> RequestBodyConsumer a
+foldBytesTerminating step init =
+  RequestBodyConsumer consumer
+  where
+    consumer getChunk =
+      recur init
+      where
+        recur state =
+          getChunk >>= onChunk
+          where
+            onChunk chunk =
+              if Data.ByteString.null chunk
+                then return state
+                else case step state chunk of
+                  Left newState -> return newState
+                  Right newState -> recur newState
+
+-- |
+-- Fold with support for early termination,
+-- which is interpreted from Left.
+foldTextTerminating :: (a -> Text -> Either a a) -> a -> RequestBodyConsumer a
+foldTextTerminating step init =
+  fmap snd (foldBytesTerminating bytesStep bytesInit)
+  where
+    bytesInit =
+      (decode, init)
+      where
+        decode =
+          Data.Text.Encoding.streamDecodeUtf8With Data.Text.Encoding.Error.lenientDecode
+    bytesStep (!decode, !state) bytesChunk =
+      case decode bytesChunk of
+        Data.Text.Encoding.Some textChunk leftovers nextDecode ->
+          if Data.Text.null textChunk
+            then Right (nextDecode, state)
+            else bimap ((,) nextDecode) ((,) nextDecode) (step state textChunk)
+
+foldBytes :: (a -> ByteString -> a) -> a -> RequestBodyConsumer a
+foldBytes step init =
   RequestBodyConsumer consumer
   where
     consumer getChunk =
@@ -43,9 +82,9 @@ folding step init =
 
 -- |
 -- A UTF8 text chunks decoding consumer.
-foldingWithText :: (a -> Text -> a) -> a -> RequestBodyConsumer a
-foldingWithText step init =
-  fmap fst (folding bytesStep bytesInit)
+foldText :: (a -> Text -> a) -> a -> RequestBodyConsumer a
+foldText step init =
+  fmap fst (foldBytes bytesStep bytesInit)
   where
     bytesInit =
       (init, Data.Text.Encoding.streamDecodeUtf8With Data.Text.Encoding.Error.lenientDecode)
@@ -61,7 +100,7 @@ foldingWithText step init =
 
 building :: Monoid builder => (ByteString -> builder) -> RequestBodyConsumer builder
 building proj =
-  folding (\l r -> mappend l (proj r)) mempty
+  foldBytes (\l r -> mappend l (proj r)) mempty
 
 bytes :: RequestBodyConsumer ByteString
 bytes =
@@ -85,7 +124,7 @@ lazyText =
 
 textBuilder :: RequestBodyConsumer Data.Text.Lazy.Builder.Builder
 textBuilder =
-  fmap fst (folding step init)
+  fmap fst (foldBytes step init)
   where
     step (builder, decode) bytes =
       case decode bytes of
@@ -98,22 +137,22 @@ textBuilder =
 -- Turn a bytes parser into an input stream consumer.
 attoparsecBytesParser :: Data.Attoparsec.ByteString.Parser a -> RequestBodyConsumer (Either Text a)
 attoparsecBytesParser parser =
-  attoparsecResult folding (Data.Attoparsec.ByteString.Partial (Data.Attoparsec.ByteString.parse parser))
+  attoparsecResult foldBytesTerminating (Data.Attoparsec.ByteString.Partial (Data.Attoparsec.ByteString.parse parser))
 
 attoparsecTextParser :: Data.Attoparsec.Text.Parser a -> RequestBodyConsumer (Either Text a)
 attoparsecTextParser parser =
-  attoparsecResult foldingWithText (Data.Attoparsec.Text.Partial (Data.Attoparsec.Text.parse parser))
+  attoparsecResult foldTextTerminating (Data.Attoparsec.Text.Partial (Data.Attoparsec.Text.parse parser))
 
-attoparsecResult :: Monoid i => (forall a. (a -> i -> a) -> a -> RequestBodyConsumer a) -> Data.Attoparsec.Types.IResult i a -> RequestBodyConsumer (Either Text a)
-attoparsecResult folding result =
-  fmap finalise (folding step result)
+attoparsecResult :: Monoid i => (forall a. (a -> i -> Either a a) -> a -> RequestBodyConsumer a) -> Data.Attoparsec.Types.IResult i a -> RequestBodyConsumer (Either Text a)
+attoparsecResult fold result =
+  fmap finalise (fold step result)
   where
     step result chunk =
       case result of
         Data.Attoparsec.Types.Partial chunkToResult ->
-          chunkToResult chunk
+          Right (chunkToResult chunk)
         _ ->
-          result
+          Left result
     finalise =
       \case
         Data.Attoparsec.Types.Partial chunkToResult ->
