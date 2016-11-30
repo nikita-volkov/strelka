@@ -188,48 +188,48 @@ getBody =
     Request _ _ _ _ x <- RequestParser ask
     return x
 
-consumeBody :: MonadIO m => (IO ByteString -> IO a) -> RequestParser m a
-consumeBody consume =
+consumeBody :: MonadIO m => P.RequestBodyConsumer a -> RequestParser m a
+consumeBody (P.RequestBodyConsumer consume) =
   do
-    InputStream getChunk <- getBody
+    Request _ _ _ _ (InputStream getChunk) <- RequestParser ask
     liftIO (consume getChunk)
-
-consumeBodyWithRequestBodyConsumer :: MonadIO m => P.RequestBodyConsumer a -> RequestParser m a
-consumeBodyWithRequestBodyConsumer (P.RequestBodyConsumer consume) =
-  consumeBody consume
 
 consumeBodyFolding :: MonadIO m => (a -> ByteString -> a) -> a -> RequestParser m a
 consumeBodyFolding step init =
-  consumeBodyWithRequestBodyConsumer (P.foldBytes step init)
+  consumeBody (P.foldBytes step init)
 
 consumeBodyBuilding :: (MonadIO m, Monoid builder) => (ByteString -> builder) -> RequestParser m builder
 consumeBodyBuilding proj =
-  consumeBodyWithRequestBodyConsumer (P.building proj)
+  consumeBody (P.building proj)
 
 consumeBodyAsBytes :: MonadIO m => RequestParser m ByteString
 consumeBodyAsBytes =
-  consumeBodyWithRequestBodyConsumer P.bytes
+  consumeBody P.bytes
 
 consumeBodyAsLazyBytes :: MonadIO m => RequestParser m B.ByteString
 consumeBodyAsLazyBytes =
-  consumeBodyWithRequestBodyConsumer P.lazyBytes
+  consumeBody P.lazyBytes
 
 consumeBodyAsBytesBuilder :: MonadIO m => RequestParser m C.Builder
 consumeBodyAsBytesBuilder =
-  consumeBodyWithRequestBodyConsumer P.bytesBuilder
+  consumeBody P.bytesBuilder
 
 consumeBodyAsText :: MonadIO m => RequestParser m Text
 consumeBodyAsText =
-  consumeBodyWithRequestBodyConsumer P.text
+  consumeBody P.text
 
 consumeBodyAsLazyText :: MonadIO m => RequestParser m L.Text
 consumeBodyAsLazyText =
-  consumeBodyWithRequestBodyConsumer P.lazyText
+  consumeBody P.lazyText
 
 consumeBodyAsTextBuilder :: MonadIO m => RequestParser m M.Builder
 consumeBodyAsTextBuilder =
-  consumeBodyWithRequestBodyConsumer P.textBuilder
+  consumeBody P.textBuilder
 
-consumeBodyWithAttoparsec :: MonadIO m => F.Parser a -> RequestParser m a
-consumeBodyWithAttoparsec parser =
-  consumeBodyWithRequestBodyConsumer (P.attoparsecBytesParser parser) >>= liftEither
+consumeBodyWithBytesParser :: MonadIO m => F.Parser a -> RequestParser m a
+consumeBodyWithBytesParser parser =
+  consumeBody (P.bytesParser parser) >>= liftEither
+
+consumeBodyWithTextParser :: MonadIO m => Q.Parser a -> RequestParser m a
+consumeBodyWithTextParser parser =
+  consumeBody (P.textParser parser) >>= liftEither

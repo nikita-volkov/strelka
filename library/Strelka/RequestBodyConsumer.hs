@@ -135,16 +135,16 @@ textBuilder =
 
 -- |
 -- Turn a bytes parser into an input stream consumer.
-attoparsecBytesParser :: Data.Attoparsec.ByteString.Parser a -> RequestBodyConsumer (Either Text a)
-attoparsecBytesParser parser =
-  attoparsecResult foldBytesTerminating (Data.Attoparsec.ByteString.Partial (Data.Attoparsec.ByteString.parse parser))
+bytesParser :: Data.Attoparsec.ByteString.Parser a -> RequestBodyConsumer (Either Text a)
+bytesParser parser =
+  parserResult foldBytesTerminating (Data.Attoparsec.ByteString.Partial (Data.Attoparsec.ByteString.parse parser))
 
-attoparsecTextParser :: Data.Attoparsec.Text.Parser a -> RequestBodyConsumer (Either Text a)
-attoparsecTextParser parser =
-  attoparsecResult foldTextTerminating (Data.Attoparsec.Text.Partial (Data.Attoparsec.Text.parse parser))
+textParser :: Data.Attoparsec.Text.Parser a -> RequestBodyConsumer (Either Text a)
+textParser parser =
+  parserResult foldTextTerminating (Data.Attoparsec.Text.Partial (Data.Attoparsec.Text.parse parser))
 
-attoparsecResult :: Monoid i => (forall a. (a -> i -> Either a a) -> a -> RequestBodyConsumer a) -> Data.Attoparsec.Types.IResult i a -> RequestBodyConsumer (Either Text a)
-attoparsecResult fold result =
+parserResult :: Monoid i => (forall a. (a -> i -> Either a a) -> a -> RequestBodyConsumer a) -> Data.Attoparsec.Types.IResult i a -> RequestBodyConsumer (Either Text a)
+parserResult fold result =
   fmap finalise (fold step result)
   where
     step result chunk =
