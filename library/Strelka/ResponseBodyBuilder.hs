@@ -21,30 +21,39 @@ instance Monoid ResponseBodyBuilder where
   mempty =
     ResponseBodyBuilder (\_ flush -> flush)
   mappend (ResponseBodyBuilder cont1) (ResponseBodyBuilder cont2) =
-    ResponseBodyBuilder (\consume flush -> cont1 consume (pure ()) *> cont2 consume flush)
+    ResponseBodyBuilder (\feed flush -> cont1 feed (pure ()) *> cont2 feed flush)
 
 instance Semigroup ResponseBodyBuilder
 
 
 bytes :: ByteString -> ResponseBodyBuilder
 bytes x =
-  ResponseBodyBuilder (\consume flush -> consume x *> flush)
+  ResponseBodyBuilder (\feed flush -> feed x *> flush)
 
 lazyBytes :: D.ByteString -> ResponseBodyBuilder
 lazyBytes x =
-  ResponseBodyBuilder (\consume flush -> D.foldlChunks (\io chunk -> io >> consume chunk) (pure ()) x >> flush)
+  ResponseBodyBuilder (\feed flush -> D.foldlChunks (\io chunk -> io >> feed chunk) (pure ()) x >> flush)
 
 bytesBuilder :: E.Builder -> ResponseBodyBuilder
 bytesBuilder =
   lazyBytes . E.toLazyByteString
 
 text :: Text -> ResponseBodyBuilder
-text =
-  bytesBuilder . H.encodeUtf8Builder
+text text =
+  bytes (H.encodeUtf8 text)
 
 lazyText :: F.Text -> ResponseBodyBuilder
-lazyText =
-  bytesBuilder . I.encodeUtf8Builder
+lazyText text =
+  ResponseBodyBuilder impl
+  where
+    impl feed flush =
+      F.foldlChunks step (pure ()) text *> flush
+      where
+        step io textChunk =
+          io *> feed bytesChunk
+          where
+            bytesChunk =
+              H.encodeUtf8 textChunk
 
 textBuilder :: J.Builder -> ResponseBodyBuilder
 textBuilder =
