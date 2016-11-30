@@ -3,10 +3,14 @@ module Strelka.RequestBodyConsumer where
 import Strelka.Prelude
 import Strelka.Model
 import qualified Data.Attoparsec.ByteString
+import qualified Data.Attoparsec.Text
+import qualified Data.Attoparsec.Types
 import qualified Data.ByteString
 import qualified Data.ByteString.Lazy
 import qualified Data.ByteString.Builder
+import qualified Data.Text
 import qualified Data.Text.Encoding
+import qualified Data.Text.Encoding.Error
 import qualified Data.Text.Lazy
 import qualified Data.Text.Lazy.Encoding
 import qualified Data.Text.Lazy.Builder
@@ -29,13 +33,31 @@ folding step init =
     consumer getChunk =
       recur init
       where
-        recur acc =
+        recur state =
           getChunk >>= onChunk
           where
             onChunk chunk =
               if Data.ByteString.null chunk
-                then return acc
-                else recur (step acc chunk)
+                then return state
+                else recur (step state chunk)
+
+-- |
+-- A UTF8 text chunks decoding consumer.
+foldingWithText :: (a -> Text -> a) -> a -> RequestBodyConsumer a
+foldingWithText step init =
+  fmap fst (folding bytesStep bytesInit)
+  where
+    bytesInit =
+      (init, Data.Text.Encoding.streamDecodeUtf8With Data.Text.Encoding.Error.lenientDecode)
+    bytesStep (!state, !decode) bytesChunk =
+      case decode bytesChunk of
+        Data.Text.Encoding.Some textChunk leftovers nextDecode ->
+          (nextState, nextDecode)
+          where
+            nextState =
+              if Data.Text.null textChunk
+                then state
+                else step state textChunk
 
 building :: Monoid builder => (ByteString -> builder) -> RequestBodyConsumer builder
 building proj =
@@ -76,23 +98,27 @@ textBuilder =
 -- Turn a bytes parser into an input stream consumer.
 attoparsecBytesParser :: Data.Attoparsec.ByteString.Parser a -> RequestBodyConsumer (Either Text a)
 attoparsecBytesParser parser =
-  attoparsecResult (Data.Attoparsec.ByteString.Partial (Data.Attoparsec.ByteString.parse parser))
+  attoparsecResult folding (Data.Attoparsec.ByteString.Partial (Data.Attoparsec.ByteString.parse parser))
 
-attoparsecResult :: Data.Attoparsec.ByteString.Result a -> RequestBodyConsumer (Either Text a)
-attoparsecResult result =
+attoparsecTextParser :: Data.Attoparsec.Text.Parser a -> RequestBodyConsumer (Either Text a)
+attoparsecTextParser parser =
+  attoparsecResult foldingWithText (Data.Attoparsec.Text.Partial (Data.Attoparsec.Text.parse parser))
+
+attoparsecResult :: Monoid i => (forall a. (a -> i -> a) -> a -> RequestBodyConsumer a) -> Data.Attoparsec.Types.IResult i a -> RequestBodyConsumer (Either Text a)
+attoparsecResult folding result =
   fmap finalise (folding step result)
   where
     step result chunk =
       case result of
-        Data.Attoparsec.ByteString.Partial chunkToResult ->
+        Data.Attoparsec.Types.Partial chunkToResult ->
           chunkToResult chunk
         _ ->
           result
     finalise =
       \case
-        Data.Attoparsec.ByteString.Partial chunkToResult ->
+        Data.Attoparsec.Types.Partial chunkToResult ->
           finalise (chunkToResult mempty)
-        Data.Attoparsec.ByteString.Done leftovers resultValue ->
+        Data.Attoparsec.Types.Done leftovers resultValue ->
           Right resultValue
-        Data.Attoparsec.ByteString.Fail leftovers contexts message ->
+        Data.Attoparsec.Types.Fail leftovers contexts message ->
           Left (fromString (intercalate " > " contexts <> ": " <> message))
