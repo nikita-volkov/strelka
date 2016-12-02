@@ -21,12 +21,6 @@ newtype RequestBodyConsumer a =
   deriving (Functor)
 
 -- |
--- Ignore the request body, producing the specified value.
-ignoring :: a -> RequestBodyConsumer a
-ignoring x =
-  RequestBodyConsumer (const (return x))
-
--- |
 -- Fold with support for early termination,
 -- which is interpreted from Left.
 foldBytesTerminating :: (a -> ByteString -> Either a a) -> a -> RequestBodyConsumer a
