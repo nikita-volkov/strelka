@@ -13,6 +13,9 @@ description:
   [Warning]
   This library is currently in active development.
   The API can change rapidly.
+  .
+  [Demo]
+  <https://github.com/nikita-volkov/strelka-demo>.
 homepage:
   https://github.com/nikita-volkov/strelka
 bug-reports:
