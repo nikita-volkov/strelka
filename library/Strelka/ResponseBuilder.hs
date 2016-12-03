@@ -78,8 +78,6 @@ HEAD the entity-header fields corresponding to the requested resource are sent i
 POST an entity describing or containing the result of the action;
 
 TRACE an entity containing the request message as received by the end server.
-
-<https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.1 W3C Docs>
 -}
 okayStatus :: ResponseBuilder
 okayStatus =
@@ -100,8 +98,6 @@ If the 301 status code is received in response to a request other than GET or HE
       Note: When automatically redirecting a POST request after
       receiving a 301 status code, some existing HTTP/1.0 user agents
       will erroneously change it into a GET request.
-
-<https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.2 W3C Docs>
 -}
 movedPermanentlyStatus :: ResponseBuilder
 movedPermanentlyStatus =
@@ -114,8 +110,6 @@ movedPermanentlyStatus =
 Set the status code to @400@. Following is the description of this status.
 
 The request could not be understood by the server due to malformed syntax. The client SHOULD NOT repeat the request without modifications.
-
-<https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.1 W3C Docs>
 -}
 badRequestStatus :: ResponseBuilder
 badRequestStatus =
@@ -125,8 +119,6 @@ badRequestStatus =
 Set the status code to @401@. Following is the description of this status.
 
 The request requires user authentication. The response MUST include a WWW-Authenticate header field (section 14.47) containing a challenge applicable to the requested resource. The client MAY repeat the request with a suitable Authorization header field (section 14.8). If the request already included Authorization credentials, then the 401 response indicates that authorization has been refused for those credentials. If the 401 response contains the same challenge as the prior response, and the user agent has already attempted authentication at least once, then the user SHOULD be presented the entity that was given in the response, since that entity might include relevant diagnostic information. HTTP access authentication is explained in "HTTP Authentication: Basic and Digest Access Authentication".
-
-<https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.2 W3C Docs>
 -}
 unauthorizedStatus :: ResponseBuilder
 unauthorizedStatus =
@@ -136,8 +128,6 @@ unauthorizedStatus =
 Set the status code to @403@. Following is the description of this status.
 
 The server understood the request, but is refusing to fulfill it. Authorization will not help and the request SHOULD NOT be repeated. If the request method was not HEAD and the server wishes to make public why the request has not been fulfilled, it SHOULD describe the reason for the refusal in the entity. If the server does not wish to make this information available to the client, the status code 404 (Not Found) can be used instead.
-
-<https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.4 W3C Docs>
 -}
 forbiddenStatus :: ResponseBuilder
 forbiddenStatus =
@@ -147,8 +137,6 @@ forbiddenStatus =
 Set the status code to @404@. Following is the description of this status.
 
 The server has not found anything matching the Request-URI. No indication is given of whether the condition is temporary or permanent. The 410 (Gone) status code SHOULD be used if the server knows, through some internally configurable mechanism, that an old resource is permanently unavailable and has no forwarding address. This status code is commonly used when the server does not wish to reveal exactly why the request has been refused, or when no other response is applicable.
-
-<https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.5 W3C Docs>
 -}
 notFoundStatus :: ResponseBuilder
 notFoundStatus =
@@ -158,8 +146,6 @@ notFoundStatus =
 Set the status code to @405@. Following is the description of this status.
 
 The method specified in the Request-Line is not allowed for the resource identified by the Request-URI. The response MUST include an Allow header containing a list of valid methods for the requested resource.
-
-<https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.6 W3C Docs>
 -}
 methodNotAllowedStatus :: ResponseBuilder
 methodNotAllowedStatus =
@@ -179,8 +165,6 @@ Unless it was a HEAD request, the response SHOULD include an entity containing a
       an incoming response to determine if it is acceptable.
 
 If the response could be unacceptable, a user agent SHOULD temporarily stop receipt of more data and query the user for a decision on further actions.
-
-<https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.7 W3C Docs>
 -}
 notAcceptableStatus :: ResponseBuilder
 notAcceptableStatus =
@@ -190,8 +174,6 @@ notAcceptableStatus =
 Set the status code to @500@. Following is the description of this status.
 
 The server encountered an unexpected condition which prevented it from fulfilling the request.
-
-<https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.5.1 W3C Docs>
 -}
 internalErrorStatus :: ResponseBuilder
 internalErrorStatus =
