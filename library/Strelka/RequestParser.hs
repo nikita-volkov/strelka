@@ -215,9 +215,16 @@ getAuthorization =
 -- * Params
 -------------------------
 
-getParamAsText :: Text -> RequestParser m Text
-getParamAsText name =
-  undefined
+{- |
+Get a parameter\'s value by its name, failing if the parameter is not present. 
+
+@Maybe@ encodes whether the value was specified, i.e. @?name=value@ vs @?name@.
+-}
+getParam :: Monad m => ByteString -> RequestParser m (Maybe ByteString)
+getParam name =
+  do
+    Request _ _ params _ _ <- RequestParser ask
+    liftMaybe (liftM (\(ParamValue value) -> value) (G.lookup (ParamName name) params))
 
 
 -- * Body
