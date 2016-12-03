@@ -223,12 +223,6 @@ getParamAsText name =
 -- * Body
 -------------------------
 
-getBody :: Monad m => RequestParser m InputStream
-getBody =
-  do
-    Request _ _ _ _ x <- RequestParser ask
-    return x
-
 consumeBody :: MonadIO m => P.RequestBodyConsumer a -> RequestParser m a
 consumeBody (P.RequestBodyConsumer consume) =
   do
