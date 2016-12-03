@@ -170,6 +170,9 @@ notAcceptableStatus :: ResponseBuilder
 notAcceptableStatus =
   status 406
 
+-- ** 5xx Server Error Statuses
+-------------------------
+
 {- |
 Set the status code to @500@. Following is the description of this status.
 
@@ -216,7 +219,7 @@ json x =
 -------------------------
 
 {- |
-Set the status code to 401, adding a @WWW-Authenticate@ header.
+Set the status code to 401, adding a @WWW-Authenticate@ header with specified Realm.
 -}
 unauthorized :: ByteString -> ResponseBuilder
 unauthorized realm =
