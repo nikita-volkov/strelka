@@ -115,42 +115,36 @@ ensureThatMethodIs expectedMethod =
 
 -- |
 -- Same as @ensureThatMethodIs "get"@.
--- Exists for compile-time protection from typos.
 ensureThatMethodIsGet :: Monad m => RequestParser m ()
 ensureThatMethodIsGet =
   ensureThatMethodIs "get"
 
 -- |
 -- Same as @ensureThatMethodIs "post"@.
--- Exists for compile-time protection from typos.
 ensureThatMethodIsPost :: Monad m => RequestParser m ()
 ensureThatMethodIsPost =
   ensureThatMethodIs "post"
 
 -- |
 -- Same as @ensureThatMethodIs "put"@.
--- Exists for compile-time protection from typos.
 ensureThatMethodIsPut :: Monad m => RequestParser m ()
 ensureThatMethodIsPut =
   ensureThatMethodIs "put"
 
 -- |
 -- Same as @ensureThatMethodIs "delete"@.
--- Exists for compile-time protection from typos.
 ensureThatMethodIsDelete :: Monad m => RequestParser m ()
 ensureThatMethodIsDelete =
   ensureThatMethodIs "delete"
 
 -- |
 -- Same as @ensureThatMethodIs "head"@.
--- Exists for compile-time protection from typos.
 ensureThatMethodIsHead :: Monad m => RequestParser m ()
 ensureThatMethodIsHead =
   ensureThatMethodIs "head"
 
 -- |
 -- Same as @ensureThatMethodIs "trace"@.
--- Exists for compile-time protection from typos.
 ensureThatMethodIsTrace :: Monad m => RequestParser m ()
 ensureThatMethodIsTrace =
   ensureThatMethodIs "trace"
@@ -178,21 +172,18 @@ ensureThatAccepts contentType =
 
 -- |
 -- Same as @ensureThatAccepts "text/plain"@.
--- Exists for compile-time protection from typos.
 ensureThatAcceptsText :: Monad m => RequestParser m ()
 ensureThatAcceptsText =
   ensureThatAccepts "text/plain"
 
 -- |
 -- Same as @ensureThatAccepts "text/html"@.
--- Exists for compile-time protection from typos.
 ensureThatAcceptsHTML :: Monad m => RequestParser m ()
 ensureThatAcceptsHTML =
   ensureThatAccepts "text/html"
 
 -- |
 -- Same as @ensureThatAccepts "application/json"@.
--- Exists for compile-time protection from typos.
 ensureThatAcceptsJSON :: Monad m => RequestParser m ()
 ensureThatAcceptsJSON =
   ensureThatAccepts "application/json"
