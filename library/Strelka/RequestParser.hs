@@ -225,9 +225,9 @@ consumeBodyFolding :: MonadIO m => (a -> ByteString -> a) -> a -> RequestParser 
 consumeBodyFolding step init =
   consumeBody (P.foldBytes step init)
 
-consumeBodyBuilding :: (MonadIO m, Monoid builder) => (ByteString -> builder) -> RequestParser m builder
+consumeBodyBuilding :: (MonadIO m, Monoid a) => (ByteString -> a) -> RequestParser m a
 consumeBodyBuilding proj =
-  consumeBody (P.building proj)
+  consumeBody (P.build proj)
 
 consumeBodyAsBytes :: MonadIO m => RequestParser m ByteString
 consumeBodyAsBytes =

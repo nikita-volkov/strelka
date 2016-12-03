@@ -92,8 +92,11 @@ foldText step init =
                 then state
                 else step state textChunk
 
-building :: Monoid builder => (ByteString -> builder) -> RequestBodyConsumer builder
-building proj =
+{- |
+Similar to "Foldable"\'s 'foldMap'.
+-}
+build :: Monoid a => (ByteString -> a) -> RequestBodyConsumer a
+build proj =
   foldBytes (\l r -> mappend l (proj r)) mempty
 
 bytes :: RequestBodyConsumer ByteString
@@ -106,7 +109,7 @@ lazyBytes =
 
 bytesBuilder :: RequestBodyConsumer Data.ByteString.Builder.Builder
 bytesBuilder =
-  building Data.ByteString.Builder.byteString
+  build Data.ByteString.Builder.byteString
 
 text :: RequestBodyConsumer Text
 text =
