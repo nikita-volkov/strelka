@@ -141,6 +141,20 @@ ensureThatMethodIsDelete :: Monad m => RequestParser m ()
 ensureThatMethodIsDelete =
   ensureThatMethodIs "delete"
 
+-- |
+-- Same as @ensureThatMethodIs "head"@.
+-- Exists for compile-time protection from typos.
+ensureThatMethodIsHead :: Monad m => RequestParser m ()
+ensureThatMethodIsHead =
+  ensureThatMethodIs "head"
+
+-- |
+-- Same as @ensureThatMethodIs "trace"@.
+-- Exists for compile-time protection from typos.
+ensureThatMethodIsTrace :: Monad m => RequestParser m ()
+ensureThatMethodIsTrace =
+  ensureThatMethodIs "trace"
+
 
 -- * Headers
 -------------------------
