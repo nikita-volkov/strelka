@@ -10,6 +10,9 @@ import qualified Data.Text.Lazy.Encoding as I
 import qualified Data.Text.Lazy.Builder as J
 
 
+{-|
+A builder of the response body.
+-}
 newtype ResponseBodyBuilder =
   ResponseBodyBuilder ((ByteString -> IO ()) -> IO () -> IO ())
 
@@ -26,22 +29,37 @@ instance Monoid ResponseBodyBuilder where
 instance Semigroup ResponseBodyBuilder
 
 
+{-|
+Lift ByteString.
+-}
 bytes :: ByteString -> ResponseBodyBuilder
 bytes x =
   ResponseBodyBuilder (\feed flush -> feed x *> flush)
 
+{-|
+Lift lazy ByteString.
+-}
 lazyBytes :: D.ByteString -> ResponseBodyBuilder
 lazyBytes x =
   ResponseBodyBuilder (\feed flush -> D.foldlChunks (\io chunk -> io >> feed chunk) (pure ()) x >> flush)
 
+{-|
+Lift ByteString Builder.
+-}
 bytesBuilder :: E.Builder -> ResponseBodyBuilder
 bytesBuilder =
   lazyBytes . E.toLazyByteString
 
+{-|
+Lift Text.
+-}
 text :: Text -> ResponseBodyBuilder
 text text =
   bytes (H.encodeUtf8 text)
 
+{-|
+Lift lazy Text.
+-}
 lazyText :: F.Text -> ResponseBodyBuilder
 lazyText text =
   ResponseBodyBuilder impl
@@ -55,6 +73,9 @@ lazyText text =
             bytesChunk =
               H.encodeUtf8 textChunk
 
+{-|
+Lift ByteString Builder.
+-}
 textBuilder :: J.Builder -> ResponseBodyBuilder
 textBuilder =
   lazyText . J.toLazyText

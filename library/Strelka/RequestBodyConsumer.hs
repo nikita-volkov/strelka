@@ -1,4 +1,5 @@
-module Strelka.RequestBodyConsumer where
+module Strelka.RequestBodyConsumer
+where
 
 import Strelka.Prelude
 import Strelka.Model
@@ -16,13 +17,17 @@ import qualified Data.Text.Lazy.Encoding
 import qualified Data.Text.Lazy.Builder
 
 
+{-|
+A specification of how to consume the request body.
+-}
 newtype RequestBodyConsumer a =
   RequestBodyConsumer (IO ByteString -> IO a)
   deriving (Functor)
 
--- |
--- Fold with support for early termination,
--- which is interpreted from Left.
+{-|
+Fold with support for early termination,
+which is interpreted from Left.
+-}
 foldBytesTerminating :: (a -> ByteString -> Either a a) -> a -> RequestBodyConsumer a
 foldBytesTerminating step init =
   RequestBodyConsumer consumer
@@ -40,9 +45,10 @@ foldBytesTerminating step init =
                   Left newState -> return newState
                   Right newState -> recur newState
 
--- |
--- Fold with support for early termination,
--- which is interpreted from Left.
+{-|
+Fold with support for early termination,
+which is interpreted from Left.
+-}
 foldTextTerminating :: (a -> Text -> Either a a) -> a -> RequestBodyConsumer a
 foldTextTerminating step init =
   fmap snd (foldBytesTerminating bytesStep bytesInit)
@@ -59,6 +65,9 @@ foldTextTerminating step init =
             then Right (nextDecode, state)
             else bimap ((,) nextDecode) ((,) nextDecode) (step state textChunk)
 
+{-|
+Fold over ByteString chunks.
+-}
 foldBytes :: (a -> ByteString -> a) -> a -> RequestBodyConsumer a
 foldBytes step init =
   RequestBodyConsumer consumer
@@ -74,8 +83,9 @@ foldBytes step init =
                 then return state
                 else recur (step state chunk)
 
--- |
--- A UTF8 text chunks decoding consumer.
+{-|
+Fold over text chunks decoded using UTF8.
+-}
 foldText :: (a -> Text -> a) -> a -> RequestBodyConsumer a
 foldText step init =
   fmap fst (foldBytes bytesStep bytesInit)
@@ -99,26 +109,44 @@ build :: Monoid a => (ByteString -> a) -> RequestBodyConsumer a
 build proj =
   foldBytes (\l r -> mappend l (proj r)) mempty
 
+{-|
+Consume as ByteString.
+-}
 bytes :: RequestBodyConsumer ByteString
 bytes =
   fmap Data.ByteString.Lazy.toStrict lazyBytes
 
+{-|
+Consume as lazy ByteString.
+-}
 lazyBytes :: RequestBodyConsumer Data.ByteString.Lazy.ByteString
 lazyBytes =
   fmap Data.ByteString.Builder.toLazyByteString bytesBuilder
 
+{-|
+Consume as ByteString Builder.
+-}
 bytesBuilder :: RequestBodyConsumer Data.ByteString.Builder.Builder
 bytesBuilder =
   build Data.ByteString.Builder.byteString
 
+{-|
+Consume as Text.
+-}
 text :: RequestBodyConsumer Text
 text =
   fmap Data.Text.Lazy.toStrict lazyText
 
+{-|
+Consume as lazy Text.
+-}
 lazyText :: RequestBodyConsumer Data.Text.Lazy.Text
 lazyText =
   fmap Data.Text.Lazy.Builder.toLazyText textBuilder
 
+{-|
+Consume as Text Builder.
+-}
 textBuilder :: RequestBodyConsumer Data.Text.Lazy.Builder.Builder
 textBuilder =
   fmap fst (foldBytes step init)
@@ -130,16 +158,27 @@ textBuilder =
     init =
       (mempty, Data.Text.Encoding.streamDecodeUtf8)
 
--- |
--- Turn a bytes parser into an input stream consumer.
+{-|
+Lift an Attoparsec ByteString parser.
+
+Consumption is non-greedy and terminates when the parser is done.
+-}
 bytesParser :: Data.Attoparsec.ByteString.Parser a -> RequestBodyConsumer (Either Text a)
 bytesParser parser =
   parserResult foldBytesTerminating (Data.Attoparsec.ByteString.Partial (Data.Attoparsec.ByteString.parse parser))
 
+{-|
+Lift an Attoparsec Text parser.
+
+Consumption is non-greedy and terminates when the parser is done.
+-}
 textParser :: Data.Attoparsec.Text.Parser a -> RequestBodyConsumer (Either Text a)
 textParser parser =
   parserResult foldTextTerminating (Data.Attoparsec.Text.Partial (Data.Attoparsec.Text.parse parser))
 
+{-|
+Given a chunk-specialized terminating fold implementation lifts a generic Attoparsec result.
+-}
 parserResult :: Monoid i => (forall a. (a -> i -> Either a a) -> a -> RequestBodyConsumer a) -> Data.Attoparsec.Types.IResult i a -> RequestBodyConsumer (Either Text a)
 parserResult fold result =
   fmap finalise (fold step result)
