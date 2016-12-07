@@ -2,7 +2,6 @@ module Strelka.RequestBodyConsumer
 where
 
 import Strelka.Prelude
-import Strelka.Model
 import qualified Data.Attoparsec.ByteString
 import qualified Data.Attoparsec.Text
 import qualified Data.Attoparsec.Types
