@@ -1,7 +1,7 @@
 module Strelka.RequestParser where
 
 import Strelka.Prelude
-import Strelka.Model
+import Strelka.Core.Model
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Builder as C
 import qualified Data.Text as E
@@ -11,43 +11,24 @@ import qualified Data.Attoparsec.ByteString as F
 import qualified Data.Attoparsec.Text as Q
 import qualified Data.HashMap.Strict as G
 import qualified Network.HTTP.Media as K
+import qualified Strelka.Core.RequestParser as A
 import qualified Strelka.RequestBodyConsumer as P
 import qualified Strelka.HTTPAuthorizationParser as D
 
 
 {-|
 Parser of an HTTP request.
-Consumes path segments, analyzes 
+Analyzes its meta information, consumes the path segments and the body.
 -}
-newtype RequestParser m a =
-  RequestParser (ReaderT Request (StateT [Text] (ExceptT Text m)) a)
-  deriving (Functor, Applicative, Monad, Alternative, MonadPlus, MonadError Text)
-
-instance MonadIO m => MonadIO (RequestParser m) where
-  liftIO io =
-    RequestParser ((lift . lift . ExceptT . liftM (either (Left . fromString . show) Right) . liftIO . trySE) io)
-    where
-      trySE :: IO a -> IO (Either SomeException a)
-      trySE =
-        Strelka.Prelude.try
-
-instance MonadTrans RequestParser where
-  lift m =
-    RequestParser (lift (lift (lift m)))
-
-{-|
-Execute the parser providing a request and a list of segments.
--}
-run :: RequestParser m a -> Request -> [Text] -> m (Either Text (a, [Text]))
-run (RequestParser impl) request segments =
-  runExceptT (runStateT (runReaderT impl request) segments)
+type RequestParser =
+  A.RequestParser
 
 {-|
 Fail with a text message.
 -}
 fail :: Monad m => Text -> RequestParser m a
 fail message =
-  RequestParser $
+  A.RequestParser $
   lift $
   lift $
   ExceptT $
@@ -60,7 +41,7 @@ Lift Either, interpreting Left as a failure.
 -}
 liftEither :: Monad m => Either Text a -> RequestParser m a
 liftEither =
-  RequestParser .
+  A.RequestParser .
   lift .
   lift .
   ExceptT .
@@ -90,12 +71,12 @@ Consume the next segment of the path.
 -}
 consumeSegment :: Monad m => RequestParser m Text
 consumeSegment =
-  RequestParser $
+  A.RequestParser $
   lift $
   StateT $
   \case
-    segmentsHead : segmentsTail ->
-      return (segmentsHead, segmentsTail)
+    PathSegment segmentText : segmentsTail ->
+      return (segmentText, segmentsTail)
     _ ->
       ExceptT (return (Left "No segments left"))
 
@@ -120,7 +101,7 @@ Fail if there's any path segments left unconsumed.
 -}
 ensureThatNoSegmentsIsLeft :: Monad m => RequestParser m ()
 ensureThatNoSegmentsIsLeft =
-  RequestParser (lift (gets null)) >>= guard
+  A.RequestParser (lift (gets null)) >>= guard
 
 
 -- * Methods
@@ -132,7 +113,7 @@ Get the request method.
 getMethod :: Monad m => RequestParser m ByteString
 getMethod =
   do
-    Request (Method method) _ _ _ _ <- RequestParser ask
+    Request (Method method) _ _ _ _ <- A.RequestParser ask
     return method
 
 {-|
@@ -196,7 +177,7 @@ Lookup a header by name in lower-case.
 getHeader :: Monad m => ByteString -> RequestParser m ByteString
 getHeader name =
   do
-    Request _ _ _ headers _ <- RequestParser ask
+    Request _ _ _ headers _ <- A.RequestParser ask
     liftMaybe (liftM (\(HeaderValue value) -> value) (G.lookup (HeaderName name) headers))
 
 {-|
@@ -258,7 +239,7 @@ Get a parameter\'s value by its name, failing if the parameter is not present.
 getParam :: Monad m => ByteString -> RequestParser m (Maybe ByteString)
 getParam name =
   do
-    Request _ _ params _ _ <- RequestParser ask
+    Request _ _ params _ _ <- A.RequestParser ask
     liftMaybe (liftM (\(ParamValue value) -> value) (G.lookup (ParamName name) params))
 
 
@@ -275,7 +256,7 @@ you can only consume it once regardless of the Alternative branching.
 consumeBody :: MonadIO m => P.RequestBodyConsumer a -> RequestParser m a
 consumeBody (P.RequestBodyConsumer consume) =
   do
-    Request _ _ _ _ (InputStream getChunk) <- RequestParser ask
+    Request _ _ _ _ (InputStream getChunk) <- A.RequestParser ask
     liftIO (consume getChunk)
 
 {-|

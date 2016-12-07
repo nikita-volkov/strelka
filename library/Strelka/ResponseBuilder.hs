@@ -1,31 +1,16 @@
 module Strelka.ResponseBuilder where
 
 import Strelka.Prelude
-import Strelka.Model
+import Strelka.Core.Model
 import qualified Strelka.ResponseBodyBuilder as A
+import qualified Strelka.Core.ResponseBuilder as B
 
 
 {- |
 A composable abstraction for building an HTTP response.
 -}
-newtype ResponseBuilder =
-  ResponseBuilder (Response -> Response)
-
-instance Monoid ResponseBuilder where
-  mempty =
-    ResponseBuilder id
-  mappend (ResponseBuilder fn1) (ResponseBuilder fn2) =
-    ResponseBuilder (fn2 . fn1)
-
-instance Semigroup ResponseBuilder
-
-
-{- |
-Execute the builder producing Response.
--}
-run :: ResponseBuilder -> Response
-run (ResponseBuilder fn) =
-  fn (Response (Status 200) [] (OutputStream (const (const (pure ())))))
+type ResponseBuilder =
+  B.ResponseBuilder
 
 
 -- * Headers
@@ -36,7 +21,7 @@ Add a header by name and value.
 -}
 header :: ByteString -> ByteString -> ResponseBuilder
 header name value =
-  ResponseBuilder (\(Response status headers body) -> Response status (Header (HeaderName name) (HeaderValue value) : headers) body)
+  B.ResponseBuilder (\(Response status headers body) -> Response status (Header (HeaderName name) (HeaderValue value) : headers) body)
 
 {- |
 Add a @Content-type@ header.
@@ -61,7 +46,7 @@ Set the status code.
 -}
 status :: Int -> ResponseBuilder
 status x =
-  ResponseBuilder (\(Response _ headers body) -> Response (Status x) headers body)
+  B.ResponseBuilder (\(Response _ headers body) -> Response (Status x) headers body)
 
 -- ** 2xx Successful Statuses
 -------------------------
@@ -191,7 +176,7 @@ Set the body.
 -}
 body :: A.ResponseBodyBuilder -> ResponseBuilder
 body (A.ResponseBodyBuilder x) =
-  ResponseBuilder (\(Response status headers _) -> Response status headers (OutputStream x)) 
+  B.ResponseBuilder (\(Response status headers _) -> Response status headers (OutputStream x)) 
 
 {- |
 Add a @Content-type@ header with the value of @text/plain@ and set the body.

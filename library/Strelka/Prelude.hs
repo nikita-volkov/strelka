@@ -22,14 +22,6 @@ import Control.Monad.Trans.Reader as Exports (Reader, runReader, mapReader, with
 import Control.Monad.Trans.State.Strict as Exports (State, runState, evalState, execState, mapState, withState, StateT(StateT), runStateT, evalStateT, execStateT, mapStateT, withStateT)
 import Control.Monad.Trans.Writer.Strict as Exports (Writer, runWriter, execWriter, mapWriter, WriterT(..), execWriterT, mapWriterT)
 
--- transformers-base
--------------------------
-import Control.Monad.Base as Exports
-
--- monad-control
--------------------------
-import Control.Monad.Trans.Control as Exports
-
 -- mtl
 -------------------------
 import Control.Monad.Cont.Class as Exports
