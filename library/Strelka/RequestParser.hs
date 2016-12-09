@@ -174,7 +174,7 @@ getMethod =
     return method
 
 {-|
-Ensure that the method matches the provided value in lower-case.
+Ensure that the method matches the provided value __in lower-case__.
 -}
 ensureThatMethodIs :: Monad m => ByteString -> RequestParser m ()
 ensureThatMethodIs expectedMethod =
@@ -229,7 +229,7 @@ ensureThatMethodIsTrace =
 -------------------------
 
 {-|
-Lookup a header by name in lower-case.
+Lookup a header by name __in lower-case__.
 -}
 getHeader :: Monad m => ByteString -> RequestParser m ByteString
 getHeader name =
@@ -240,7 +240,7 @@ getHeader name =
 {-|
 Ensure that the request provides an Accept header,
 which includes the specified content type.
-Content type must be in lower-case.
+Content type must be __in lower-case__.
 -}
 ensureThatAccepts :: Monad m => ByteString -> RequestParser m ()
 ensureThatAccepts contentType =
@@ -271,7 +271,7 @@ ensureThatAcceptsJSON =
 {-|
 Check whether the request provides an Accept header,
 which includes the specified content type.
-Content type must be in lower-case.
+Content type must be __in lower-case__.
 -}
 checkIfAccepts :: Monad m => ByteString -> RequestParser m Bool
 checkIfAccepts contentType =
