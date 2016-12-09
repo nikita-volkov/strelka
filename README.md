@@ -12,20 +12,10 @@ which can then be used on top of any server implementation.
 
 Haskell is famous for being best at parsing things. It's all due to its great abstractions like `Applicative`, `Alternative` and `Monad`, which let us approach the infinitely complex problems with decomposition. Yet for some reason the area of web-routing hasn't been approached that way much before.
 
-So having composable parsers why do we have to downgrade to primitive uncomposable Ruby-ish patterns like the following?
+So having composable parsers why do we have to downgrade to primitive uncomposable patterns like the following?
 
 ```haskell
 get "/user/:id" ...
-```
-
-Yet a question arises then: having already seen the textual parsers, which we all know and love, why can't we parse a request in the same fashion instead:
-
-```haskell
-do
-  consumeSegmentIfIs "user"
-  userID <- consumeSegment
-  ensureThatMethodIsGet
-  ...
 ```
 
 ## Type-safety
