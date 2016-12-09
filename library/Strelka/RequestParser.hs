@@ -34,24 +34,7 @@ module Strelka.RequestParser
   checkIfAccepts,
   getAuthorization,
   -- * Body Consumption
-  -- |
-  -- [NOTICE]
-  -- Since the body is consumed as a stream,
-  -- you can only consume it once regardless of the Alternative branching.
-  consumeBodyFoldingBytes,
-  consumeBodyFoldingBytesWithTermination,
-  consumeBodyBuildingFromBytes,
-  consumeBodyFoldingText,
-  consumeBodyFoldingTextWithTermination,
-  consumeBodyBuildingFromText,
-  consumeBodyAsBytes,
-  consumeBodyAsLazyBytes,
-  consumeBodyAsBytesBuilder,
-  consumeBodyAsText,
-  consumeBodyAsLazyText,
-  consumeBodyAsTextBuilder,
-  consumeBodyWithBytesParser,
-  consumeBodyWithTextParser,
+  consumeBody,
 )
 where
 
@@ -307,113 +290,13 @@ getAuthorization =
 
 {-|
 Consume the request body using the provided RequestBodyConsumer.
+
+[NOTICE]
+Since the body is consumed as a stream,
+you can only consume it once regardless of the Alternative branching.
 -}
 consumeBody :: MonadIO m => P.RequestBodyConsumer a -> RequestParser m a
 consumeBody (P.RequestBodyConsumer consume) =
   do
     Request _ _ _ _ (InputStream getChunk) <- A.RequestParser ask
     liftIO (consume getChunk)
-
-{-|
-Consume the request body by folding over the chunks of the byte-stream.
--}
-consumeBodyFoldingBytes :: MonadIO m => (a -> ByteString -> a) -> a -> RequestParser m a
-consumeBodyFoldingBytes step init =
-  consumeBody (P.foldBytes step init)
-
-{-|
-Consume the request body by folding over the chunks of the byte-stream,
-with support for early termination.
-The termination is interpreted from "Left".
--}
-consumeBodyFoldingBytesWithTermination :: MonadIO m => (a -> ByteString -> Either a a) -> a -> RequestParser m a
-consumeBodyFoldingBytesWithTermination step init =
-  consumeBody (P.foldBytesWithTermination step init)
-
-{-|
-Consume the request body by building a Monoid value from the chunks of the byte-stream.
--}
-consumeBodyBuildingFromBytes :: (MonadIO m, Monoid a) => (ByteString -> a) -> RequestParser m a
-consumeBodyBuildingFromBytes proj =
-  consumeBody (P.buildFromBytes proj)
-
-{-|
-Consume the request body by folding over the chunks of the input stream decoded using UTF8.
--}
-consumeBodyFoldingText :: MonadIO m => (a -> Text -> a) -> a -> RequestParser m a
-consumeBodyFoldingText step init =
-  consumeBody (P.foldText step init)
-
-{-|
-Consume the request body by folding over the chunks of the input stream decoded using UTF8,
-with support for early termination.
-The termination is interpreted from "Left".
--}
-consumeBodyFoldingTextWithTermination :: MonadIO m => (a -> Text -> Either a a) -> a -> RequestParser m a
-consumeBodyFoldingTextWithTermination step init =
-  consumeBody (P.foldTextWithTermination step init)
-
-{-|
-Consume the request body by building a Monoid value from the chunks of the input stream decoded using UTF8.
--}
-consumeBodyBuildingFromText :: (MonadIO m, Monoid a) => (Text -> a) -> RequestParser m a
-consumeBodyBuildingFromText proj =
-  consumeBody (P.buildFromText proj)
-
-{-|
-Consume the whole body as bytes.
--}
-consumeBodyAsBytes :: MonadIO m => RequestParser m ByteString
-consumeBodyAsBytes =
-  consumeBody P.bytes
-
-{-|
-Consume the whole body as lazy bytes.
--}
-consumeBodyAsLazyBytes :: MonadIO m => RequestParser m B.ByteString
-consumeBodyAsLazyBytes =
-  consumeBody P.lazyBytes
-
-{-|
-Consume the whole body as a bytes builder.
--}
-consumeBodyAsBytesBuilder :: MonadIO m => RequestParser m C.Builder
-consumeBodyAsBytesBuilder =
-  consumeBody P.bytesBuilder
-
-{-|
-Consume the whole body as a UTF8-decoded text.
--}
-consumeBodyAsText :: MonadIO m => RequestParser m Text
-consumeBodyAsText =
-  consumeBody P.text
-
-{-|
-Consume the whole body as a UTF8-decoded lazy text.
--}
-consumeBodyAsLazyText :: MonadIO m => RequestParser m L.Text
-consumeBodyAsLazyText =
-  consumeBody P.lazyText
-
-{-|
-Consume the whole body as a UTF8-decoded text builder.
--}
-consumeBodyAsTextBuilder :: MonadIO m => RequestParser m M.Builder
-consumeBodyAsTextBuilder =
-  consumeBody P.textBuilder
-
-{-|
-Consume the body with an Attoparsec bytes parser,
-terminating when it requires no more input.
--}
-consumeBodyWithBytesParser :: MonadIO m => F.Parser a -> RequestParser m a
-consumeBodyWithBytesParser parser =
-  consumeBody (P.bytesParser parser) >>= liftEither
-
-{-|
-Consume the body with an Attoparsec text parser,
-terminating when it requires no more input.
--}
-consumeBodyWithTextParser :: MonadIO m => Q.Parser a -> RequestParser m a
-consumeBodyWithTextParser parser =
-  consumeBody (P.textParser parser) >>= liftEither
