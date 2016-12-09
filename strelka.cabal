@@ -21,10 +21,6 @@ description:
   For a thorough demonstration of the library and suggested usage patterns
   check out the following project:
   <https://github.com/nikita-volkov/strelka-demo>.
-  .
-  [Warning]
-  This library is currently in active development.
-  The API can change rapidly.
 homepage:
   https://github.com/nikita-volkov/strelka
 bug-reports:
