@@ -57,7 +57,7 @@ Web-routing is not rocket science. It doesn't necessarily require any advanced p
 
 ## Helloworld
 
-The following application shows how you can make a web server, which responds to the `/hi` and `/bye` routes with either HTML or plain text depending on what the user specifies in the "Accepts" request header.
+The following application shows how you can make a web server, which responds to the `/hi` and `/bye` routes with either HTML or plain text depending on what the user specifies in the "Accept" request header.
 
 You can clone and run the according project from [the "strelka-helloworld" repo](https://github.com/nikita-volkov/strelka-helloworld).
 
