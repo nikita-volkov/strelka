@@ -5,7 +5,7 @@ version:
 category:
   Web
 synopsis:
-  A flexible and composable HTTP-router
+  A simple, flexible and composable HTTP-router
 description:
   An HTTP server can be defined as a request parser, which produces a response,
   while managing some state.
