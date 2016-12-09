@@ -25,7 +25,7 @@ newtype RequestBodyConsumer a =
 
 {-|
 Fold with support for early termination,
-which is interpreted from Left.
+which is interpreted from "Left".
 -}
 foldBytesWithTermination :: (a -> ByteString -> Either a a) -> a -> RequestBodyConsumer a
 foldBytesWithTermination step init =
@@ -46,7 +46,7 @@ foldBytesWithTermination step init =
 
 {-|
 Fold with support for early termination,
-which is interpreted from Left.
+which is interpreted from "Left".
 -}
 foldTextWithTermination :: (a -> Text -> Either a a) -> a -> RequestBodyConsumer a
 foldTextWithTermination step init =
