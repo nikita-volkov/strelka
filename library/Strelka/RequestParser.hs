@@ -262,16 +262,44 @@ consumeBody (P.RequestBodyConsumer consume) =
 {-|
 Same as @'consumeBody' 'P.foldBytes'@.
 -}
-consumeBodyFolding :: MonadIO m => (a -> ByteString -> a) -> a -> RequestParser m a
-consumeBodyFolding step init =
+consumeBodyFoldingBytes :: MonadIO m => (a -> ByteString -> a) -> a -> RequestParser m a
+consumeBodyFoldingBytes step init =
   consumeBody (P.foldBytes step init)
 
 {-|
-Same as @'consumeBody' 'P.build'@.
+Same as @'consumeBody' 'P.foldBytesWithTermination'@.
 -}
-consumeBodyBuilding :: (MonadIO m, Monoid a) => (ByteString -> a) -> RequestParser m a
-consumeBodyBuilding proj =
-  consumeBody (P.build proj)
+consumeBodyFoldingBytesWithTermination :: MonadIO m => (a -> ByteString -> Either a a) -> a -> RequestParser m a
+consumeBodyFoldingBytesWithTermination step init =
+  consumeBody (P.foldBytesWithTermination step init)
+
+{-|
+Same as @'consumeBody' 'P.buildFromBytes'@.
+-}
+consumeBodyBuildingFromBytes :: (MonadIO m, Monoid a) => (ByteString -> a) -> RequestParser m a
+consumeBodyBuildingFromBytes proj =
+  consumeBody (P.buildFromBytes proj)
+
+{-|
+Same as @'consumeBody' 'P.foldText'@.
+-}
+consumeBodyFoldingText :: MonadIO m => (a -> Text -> a) -> a -> RequestParser m a
+consumeBodyFoldingText step init =
+  consumeBody (P.foldText step init)
+
+{-|
+Same as @'consumeBody' 'P.foldTextWithTermination'@.
+-}
+consumeBodyFoldingTextWithTermination :: MonadIO m => (a -> Text -> Either a a) -> a -> RequestParser m a
+consumeBodyFoldingTextWithTermination step init =
+  consumeBody (P.foldTextWithTermination step init)
+
+{-|
+Same as @'consumeBody' 'P.buildFromText'@.
+-}
+consumeBodyBuildingFromText :: (MonadIO m, Monoid a) => (Text -> a) -> RequestParser m a
+consumeBodyBuildingFromText proj =
+  consumeBody (P.buildFromText proj)
 
 {-|
 Same as @'consumeBody' 'P.bytes'@.

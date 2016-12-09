@@ -17,7 +17,7 @@ import qualified Data.Text.Lazy.Builder
 
 
 {-|
-A specification of how to consume the request body.
+A specification of how to consume the request body byte-stream.
 -}
 newtype RequestBodyConsumer a =
   RequestBodyConsumer (IO ByteString -> IO a)
@@ -27,8 +27,8 @@ newtype RequestBodyConsumer a =
 Fold with support for early termination,
 which is interpreted from Left.
 -}
-foldBytesTerminating :: (a -> ByteString -> Either a a) -> a -> RequestBodyConsumer a
-foldBytesTerminating step init =
+foldBytesWithTermination :: (a -> ByteString -> Either a a) -> a -> RequestBodyConsumer a
+foldBytesWithTermination step init =
   RequestBodyConsumer consumer
   where
     consumer getChunk =
@@ -48,9 +48,9 @@ foldBytesTerminating step init =
 Fold with support for early termination,
 which is interpreted from Left.
 -}
-foldTextTerminating :: (a -> Text -> Either a a) -> a -> RequestBodyConsumer a
-foldTextTerminating step init =
-  fmap snd (foldBytesTerminating bytesStep bytesInit)
+foldTextWithTermination :: (a -> Text -> Either a a) -> a -> RequestBodyConsumer a
+foldTextWithTermination step init =
+  fmap snd (foldBytesWithTermination bytesStep bytesInit)
   where
     bytesInit =
       (decode, init)
@@ -104,9 +104,16 @@ foldText step init =
 {- |
 Similar to "Foldable"\'s 'foldMap'.
 -}
-build :: Monoid a => (ByteString -> a) -> RequestBodyConsumer a
-build proj =
+buildFromBytes :: Monoid a => (ByteString -> a) -> RequestBodyConsumer a
+buildFromBytes proj =
   foldBytes (\l r -> mappend l (proj r)) mempty
+
+{- |
+Similar to "Foldable"\'s 'foldMap'.
+-}
+buildFromText :: Monoid a => (Text -> a) -> RequestBodyConsumer a
+buildFromText proj =
+  foldText (\l r -> mappend l (proj r)) mempty
 
 {-|
 Consume as ByteString.
@@ -127,7 +134,7 @@ Consume as ByteString Builder.
 -}
 bytesBuilder :: RequestBodyConsumer Data.ByteString.Builder.Builder
 bytesBuilder =
-  build Data.ByteString.Builder.byteString
+  buildFromBytes Data.ByteString.Builder.byteString
 
 {-|
 Consume as Text.
@@ -164,7 +171,7 @@ Consumption is non-greedy and terminates when the parser is done.
 -}
 bytesParser :: Data.Attoparsec.ByteString.Parser a -> RequestBodyConsumer (Either Text a)
 bytesParser parser =
-  parserResult foldBytesTerminating (Data.Attoparsec.ByteString.Partial (Data.Attoparsec.ByteString.parse parser))
+  parserResult foldBytesWithTermination (Data.Attoparsec.ByteString.Partial (Data.Attoparsec.ByteString.parse parser))
 
 {-|
 Lift an Attoparsec Text parser.
@@ -173,7 +180,7 @@ Consumption is non-greedy and terminates when the parser is done.
 -}
 textParser :: Data.Attoparsec.Text.Parser a -> RequestBodyConsumer (Either Text a)
 textParser parser =
-  parserResult foldTextTerminating (Data.Attoparsec.Text.Partial (Data.Attoparsec.Text.parse parser))
+  parserResult foldTextWithTermination (Data.Attoparsec.Text.Partial (Data.Attoparsec.Text.parse parser))
 
 {-|
 Given a chunk-specialized terminating fold implementation lifts a generic Attoparsec result.
