@@ -2,20 +2,29 @@ name:
   strelka
 version:
   0.5
+category:
+  Web
 synopsis:
   A flexible and composable HTTP-router
 description:
-  An HTTP server can be defined as a request parser, which produces a response.
+  An HTTP server can be defined as a request parser, which produces a response,
+  while managing some state.
   As simple as that.
-  This library exploits that fact to produce a very simple API,
+  This library exploits that fact to produce a very simple and flexible API,
   which can then be used on top of any server implementation.
+  .
+  [Server Bindings]
+  Currently only a binding to WAI and Warp is known:
+  <http://hackage.haskell.org/package/strelka-wai>.
+  .
+  [Demo]
+  For a thorough demonstration of the library and suggested usage patterns
+  check out the following project:
+  <https://github.com/nikita-volkov/strelka-demo>.
   .
   [Warning]
   This library is currently in active development.
   The API can change rapidly.
-  .
-  [Demo]
-  <https://github.com/nikita-volkov/strelka-demo>.
 homepage:
   https://github.com/nikita-volkov/strelka
 bug-reports:
