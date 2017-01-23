@@ -1,7 +1,7 @@
-module Router.ParamsParser where
+module Strelka.ParamsParser where
 
-import Router.Prelude
-import qualified Router.HTTPAuthorizationParser as D
+import Strelka.Prelude
+import qualified Strelka.HTTPAuthorizationParser as D
 import qualified Data.Attoparsec.ByteString.Char8 as F
 
 
