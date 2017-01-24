@@ -208,6 +208,6 @@ parserResult fold result =
 -- |
 -- Consumes the input stream as an \"application/x-www-form-urlencoded\"
 -- association list of parameters.
-paramsParser :: Strelka.ParamsParser.ParamsParser a -> RequestBodyConsumer (Either Text a)
-paramsParser (Strelka.ParamsParser.ParamsParser p) =
-  bytesParser p
+paramsParser :: Strelka.ParamsParser.Params a -> RequestBodyConsumer (Either Text a)
+paramsParser (Strelka.ParamsParser.Params p) =
+  undefined

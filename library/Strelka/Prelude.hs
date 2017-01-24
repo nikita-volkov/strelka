@@ -50,6 +50,10 @@ import Data.ByteString as Exports (ByteString)
 -------------------------
 import Data.Text as Exports (Text)
 
+-- scientific
+-------------------------
+import Data.Scientific as Exports (Scientific)
+
 -- hashable
 -------------------------
 import Data.Hashable as Exports
