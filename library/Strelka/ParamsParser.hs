@@ -47,3 +47,34 @@ text =
 char :: Value Char
 char =
   parser G.anyChar
+
+
+
+
+class DefaultValue value where
+  defaultValue :: Value value
+
+instance DefaultValue Text where
+  defaultValue =
+    text
+
+class DefaultParams keys values where
+  defaultParams :: keys -> Params values
+
+instance DefaultValue a => DefaultParams Text a where
+  defaultParams key =
+    value key defaultValue
+
+instance DefaultValue a => DefaultParams Text [a] where
+  defaultParams key =
+    valueList key defaultValue
+
+instance (DefaultParams keys1 values1, DefaultParams keys2 values2) => DefaultParams (keys1, keys2) (values1, values2) where
+  defaultParams (keys1, keys2) =
+    (,) <$> defaultParams keys1 <*> defaultParams keys2
+
+instance (DefaultParams keys1 values1, DefaultParams keys2 values2, DefaultParams keys3 values3) => DefaultParams (keys1, keys2, keys3) (values1, values2, values3) where
+  defaultParams (keys1, keys2, keys3) =
+    (,,) <$> defaultParams keys1 <*> defaultParams keys2 <*> defaultParams keys3
+
+
