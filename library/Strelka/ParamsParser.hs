@@ -58,23 +58,29 @@ instance DefaultValue Text where
   defaultValue =
     text
 
-class DefaultParams keys values where
-  defaultParams :: keys -> Params values
+type family KeysByValues values where
+  KeysByValues (a, b, c, d, e, f, g) = (KeysByValues a, KeysByValues b, KeysByValues c, KeysByValues d, KeysByValues e, KeysByValues f, KeysByValues g)
+  KeysByValues (a, b, c, d, e, f) = (KeysByValues a, KeysByValues b, KeysByValues c, KeysByValues d, KeysByValues e, KeysByValues f)
+  KeysByValues (a, b, c, d, e) = (KeysByValues a, KeysByValues b, KeysByValues c, KeysByValues d, KeysByValues e)
+  KeysByValues (a, b, c, d) = (KeysByValues a, KeysByValues b, KeysByValues c, KeysByValues d)
+  KeysByValues (a, b, c) = (KeysByValues a, KeysByValues b, KeysByValues c)
+  KeysByValues (a, b) = (KeysByValues a, KeysByValues b)
+  KeysByValues a = Text
 
-instance DefaultValue a => DefaultParams Text a where
+
+class DefaultParams values where
+  defaultParams :: KeysByValues values -> Params values
+
+instance DefaultValue a => DefaultParams a where
   defaultParams key =
     value key defaultValue
 
-instance DefaultValue a => DefaultParams Text [a] where
+instance DefaultValue a => DefaultParams [a] where
   defaultParams key =
     valueList key defaultValue
 
-instance (DefaultParams keys1 values1, DefaultParams keys2 values2) => DefaultParams (keys1, keys2) (values1, values2) where
+instance (DefaultParams values1, DefaultParams values2) => DefaultParams (values1, values2) where
   defaultParams (keys1, keys2) =
     (,) <$> defaultParams keys1 <*> defaultParams keys2
-
-instance (DefaultParams keys1 values1, DefaultParams keys2 values2, DefaultParams keys3 values3) => DefaultParams (keys1, keys2, keys3) (values1, values2, values3) where
-  defaultParams (keys1, keys2, keys3) =
-    (,,) <$> defaultParams keys1 <*> defaultParams keys2 <*> defaultParams keys3
 
 
