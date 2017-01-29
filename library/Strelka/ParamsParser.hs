@@ -4,26 +4,42 @@ DSL for parsing of parameters.
 module Strelka.ParamsParser where
 
 import Strelka.Prelude
-import Strelka.Core.Model
 import qualified Strelka.HTTPAuthorizationParser as D
 import qualified Data.Attoparsec.ByteString.Char8 as F
 import qualified Data.Attoparsec.Zepto as E
 import qualified Data.Attoparsec.Text as G
 import qualified Data.Text.Encoding as I
 import qualified Data.Text.Encoding.Error as J
+import qualified Data.HashMap.Strict as K
 
 
 newtype Params a =
-  Params (ReaderT (HashMap Text ParamValue) (Except Text) a)
+  Params (ReaderT (HashMap Text ByteString) (Except Text) a)
   deriving (Functor, Applicative, Alternative, Monad, MonadPlus)
+
+param :: Text -> Value a -> Params a
+param name valueParser =
+  Params (ReaderT readerFn)
+  where
+    readerFn map =
+      lookup >>= parse
+      where
+        lookup =
+          (except . maybe (Left error) Right . K.lookup name) map
+          where
+            error =
+              "Param not found: " <> name
+        parse =
+          withExcept updateError . valueReaderFn
+          where
+            valueReaderFn =
+              case valueParser of Value (ReaderT x) -> x
+            updateError error =
+              "Param \"" <> name <> "\" parsing error: " <> error
 
 newtype Value a =
   Value (ReaderT ByteString (Except Text) a)
-  deriving (Functor, Applicative, Alternative, Monad, MonadPlus)
-
-liftEitherToValue :: Either Text a -> Value a
-liftEitherToValue =
-  Value . lift . except
+  deriving (Functor, Applicative, Alternative)
 
 matchValueBytes :: (ByteString -> Either Text a) -> Value a
 matchValueBytes matcher =
@@ -73,3 +89,40 @@ double =
 scientific :: Value Scientific
 scientific =
   parseValueBytes (F.scientific <* F.endOfInput)
+
+{-|
+Accepts any string interpretable as a boolean:
+"1" or "0", "true" or "false", "yes" or "no", "y" or "n", "t" or "f".
+Case-insensitive.
+-}
+bool :: Value Bool
+bool =
+  parseValueBytes parser
+  where
+    parser =
+      (one <|> zero <|> true <|> false <|> yes <|> no <|> y <|> n <|> t <|> f) <* F.endOfInput
+      where
+        one =
+          F.char '1' $> True
+        zero =
+          F.char '0' $> False
+        true =
+          F.stringCI "true" $> True
+        false =
+          F.stringCI "false" $> False
+        yes =
+          F.stringCI "yes" $> True
+        no =
+          F.stringCI "no" $> False
+        t =
+          F.satisfy (F.inClass "tT") $> True
+        f =
+          F.satisfy (F.inClass "fF") $> False
+        y =
+          F.satisfy (F.inClass "yY") $> True
+        n =
+          F.satisfy (F.inClass "nN") $> False
+
+char :: Value Char
+char =
+  parseValueText (G.anyChar <* G.endOfInput)
