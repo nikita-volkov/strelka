@@ -63,16 +63,18 @@ instance DefaultValue Char where
     char
 
 
-defaultParams1 :: DefaultValue a => Text -> Params a
-defaultParams1 name1 =
-  value name1 defaultValue
+class DefaultParams fn where
+  defaultParams :: fn
 
-defaultParams2 :: (DefaultValue a, DefaultValue b) => Text -> Text -> Params (a, b)
-defaultParams2 name1 name2 =
-  (,) <$> defaultParams1 name1 <*> defaultParams1 name2
+instance DefaultValue a => DefaultParams (Text -> Params a) where
+  defaultParams name1 =
+    value name1 defaultValue
 
-defaultParams3 :: (DefaultValue a, DefaultValue b, DefaultValue c) => Text -> Text -> Text -> Params (a, b, c)
-defaultParams3 name1 name2 name3 =
-  (,,) <$> defaultParams1 name1 <*> defaultParams1 name2 <*> defaultParams1 name3
+instance (DefaultValue a, DefaultValue b) => DefaultParams (Text -> Text -> Params (a, b)) where
+  defaultParams name1 name2 =
+    (,) <$> defaultParams name1 <*> defaultParams name2
 
-  
+instance (DefaultValue a, DefaultValue b, DefaultValue c) => DefaultParams (Text -> Text -> Text -> Params (a, b, c)) where
+  defaultParams name1 name2 name3 =
+    (,,) <$> defaultParams name1 <*> defaultParams name2 <*> defaultParams name3
+
