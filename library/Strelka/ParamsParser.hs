@@ -13,16 +13,31 @@ newtype Params a =
   deriving (Functor, Applicative, Alternative, Monad, MonadPlus, MonadError Text)
 
 value :: Text -> Value a -> Params a
-value name (Value parser) =
-  undefined
+value name value =
+  valueMaybe name value >>= \case
+    Just x -> return x
+    Nothing -> throwError ("No value specified for the parameter \"" <> name <> "\"")
 
 valueList :: Text -> Value a -> Params [a]
-valueList name (Value parser) =
-  undefined
+valueList name value =
+  Strelka.ParamsParser.lookup name >>= parseValues value
+  where
+    parseValues (Value parser) inputs =
+      Params (lift (traverse (except . either (Left . updateError) Right . runExcept . runReaderT parser) inputs))
+      where
+        updateError x =
+          "Parameter \"" <> name <> "\" parsing failure: " <> x
 
 valueMaybe :: Text -> Value a -> Params (Maybe a)
-valueMaybe =
-  undefined
+valueMaybe name =
+  fmap listToMaybe . valueList name
+
+lookup :: Text -> Params [Text]
+lookup name =
+  Params (ReaderT (\lookup -> maybe notFound return (lookup name)))
+  where
+    notFound =
+      throwError ("Parameter \"" <> name <> "\" not found")
 
 
 newtype Value a =
@@ -50,31 +65,30 @@ char =
 
 
 
+class LenientValue value where
+  lenientValue :: Value value
 
-class DefaultValue value where
-  defaultValue :: Value value
-
-instance DefaultValue Text where
-  defaultValue =
+instance LenientValue Text where
+  lenientValue =
     text
 
-instance DefaultValue Char where
-  defaultValue =
+instance LenientValue Char where
+  lenientValue =
     char
 
 
-class DefaultParams fn where
-  defaultParams :: fn
+class LenientParams fn where
+  lenientParams :: fn
 
-instance DefaultValue a => DefaultParams (Text -> Params a) where
-  defaultParams name1 =
-    value name1 defaultValue
+instance LenientValue a => LenientParams (Text -> Params a) where
+  lenientParams name1 =
+    value name1 lenientValue
 
-instance (DefaultValue a, DefaultValue b) => DefaultParams (Text -> Text -> Params (a, b)) where
-  defaultParams name1 name2 =
-    (,) <$> defaultParams name1 <*> defaultParams name2
+instance (LenientValue a, LenientValue b) => LenientParams (Text -> Text -> Params (a, b)) where
+  lenientParams name1 name2 =
+    (,) <$> lenientParams name1 <*> lenientParams name2
 
-instance (DefaultValue a, DefaultValue b, DefaultValue c) => DefaultParams (Text -> Text -> Text -> Params (a, b, c)) where
-  defaultParams name1 name2 name3 =
-    (,,) <$> defaultParams name1 <*> defaultParams name2 <*> defaultParams name3
+instance (LenientValue a, LenientValue b, LenientValue c) => LenientParams (Text -> Text -> Text -> Params (a, b, c)) where
+  lenientParams name1 name2 name3 =
+    (,,) <$> lenientParams name1 <*> lenientParams name2 <*> lenientParams name3
 

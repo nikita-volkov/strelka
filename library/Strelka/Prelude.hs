@@ -78,6 +78,14 @@ lowerCaseBytes_iso_8859_1 =
           192 <= w && w <= 214 ||
           216 <= w && w <= 222
 
+{-# INLINE tryError #-}
 tryError :: MonadError e m => m a -> m (Either e a)
 tryError m =
   catchError (liftM Right m) (return . Left)
+
+{-# INLINE list #-}
+list :: a -> (b -> [b] -> a) -> [b] -> a
+list nil cons =
+  \case
+    head : tail -> cons head tail
+    _ -> nil
