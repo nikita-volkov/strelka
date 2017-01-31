@@ -77,18 +77,16 @@ instance LenientValue Char where
     char
 
 
-class LenientParams fn where
-  lenientParams :: fn
+lenientParams1 :: LenientValue a => Text -> Params a
+lenientParams1 name1 =
+  value name1 lenientValue
 
-instance LenientValue a => LenientParams (Text -> Params a) where
-  lenientParams name1 =
-    value name1 lenientValue
+lenientParams2 :: (LenientValue a, LenientValue b) => Text -> Text -> Params (a, b)
+lenientParams2 name1 name2 =
+  (,) <$> lenientParams1 name1 <*> lenientParams1 name2
 
-instance (LenientValue a, LenientValue b) => LenientParams (Text -> Text -> Params (a, b)) where
-  lenientParams name1 name2 =
-    (,) <$> lenientParams name1 <*> lenientParams name2
+lenientParams3 :: (LenientValue a, LenientValue b, LenientValue c) => Text -> Text -> Text -> Params (a, b, c)
+lenientParams3 name1 name2 name3 =
+  (,,) <$> lenientParams1 name1 <*> lenientParams1 name2 <*> lenientParams1 name3
 
-instance (LenientValue a, LenientValue b, LenientValue c) => LenientParams (Text -> Text -> Text -> Params (a, b, c)) where
-  lenientParams name1 name2 name3 =
-    (,,) <$> lenientParams name1 <*> lenientParams name2 <*> lenientParams name3
-
+  
