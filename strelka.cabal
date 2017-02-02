@@ -69,13 +69,14 @@ library
     Haskell2010
   build-depends:
     -- 
-    strelka-core == 0.1.*,
+    strelka-core == 0.3.*,
     -- codecs:
     base64-bytestring == 1.*,
     -- parsing:
     attoparsec >= 0.13 && < 0.14,
     attoparsec-data >= 0.1.1 && < 0.2,
     http-media >= 0.6.4 && < 0.7,
+    url-decoders == 0.1.*,
     -- 
     time == 1.*,
     scientific == 0.3.*,

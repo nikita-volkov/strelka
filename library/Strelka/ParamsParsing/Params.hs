@@ -15,6 +15,10 @@ newtype Params a =
   Params (ReaderT (Text -> Maybe [Text]) (Except Text) a)
   deriving (Functor, Applicative, Alternative)
 
+run :: Params a -> (Text -> Maybe [Text]) -> Either Text a
+run (Params reader) lookup =
+  runExcept (runReaderT reader lookup)
+
 -- | Parse a param by its name using an explicit parser.
 {-# INLINABLE param #-}
 param :: Text -> C.Value a -> Params a

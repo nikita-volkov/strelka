@@ -15,7 +15,7 @@ module Strelka.RequestParser
   consumeSegmentIfIs,
   ensureThatNoSegmentsIsLeft,
   -- * Params
-  getParam,
+  parseQuery,
   -- * Methods
   getMethod,
   ensureThatMethodIs,
@@ -52,6 +52,8 @@ import qualified Network.HTTP.Media as K
 import qualified Strelka.Core.RequestParser as A
 import qualified Strelka.RequestBodyConsumer as P
 import qualified Strelka.HTTPAuthorizationParser as D
+import qualified Strelka.ParamsParsing.Params as H
+import qualified URLDecoders as I
 
 
 {-|
@@ -150,15 +152,18 @@ ensureThatNoSegmentsIsLeft =
 -------------------------
 
 {-|
-Get a parameter\'s value by its name, failing if the parameter is not present. 
-
-@Maybe@ encodes whether a value was specified at all, i.e. @?name=value@ vs @?name@.
+Parse the request query,
+i.e. the URL part that is between the \"?\" and \"#\" characters.
 -}
-getParam :: Monad m => ByteString -> RequestParser m (Maybe ByteString)
-getParam name =
+parseQuery :: Monad m => H.Params a -> RequestParser m a
+parseQuery parser =
   do
-    Request _ _ params _ _ <- A.RequestParser ask
-    liftMaybe (liftM (\(ParamValue value) -> value) (G.lookup (ParamName name) params))
+    Request _ _ (Query queryBytes) _ _ <- A.RequestParser ask
+    case I.query queryBytes of
+      Right query -> case H.run parser (flip G.lookup query) of
+        Right result -> return result
+        Left message -> fail ("Query params parsing error: " <> message)
+      Left message -> fail ("Query parsing error: " <> message)
 
 
 -- * Methods
