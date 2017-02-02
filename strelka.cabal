@@ -71,8 +71,10 @@ library
     base64-bytestring == 1.*,
     -- parsing:
     attoparsec >= 0.13 && < 0.14,
+    attoparsec-data >= 0.1.1 && < 0.2,
     http-media >= 0.6.4 && < 0.7,
     -- 
+    time == 1.*,
     scientific == 0.3.*,
     bytestring >= 0.10.8 && < 0.11,
     text >= 1 && < 2,

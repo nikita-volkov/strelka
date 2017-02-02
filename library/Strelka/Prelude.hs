@@ -58,6 +58,10 @@ import Data.Scientific as Exports (Scientific)
 -------------------------
 import Data.Hashable as Exports
 
+-- time
+-------------------------
+import Data.Time as Exports
+
 -- Utils
 -------------------------
 import qualified Data.ByteString as ByteString
