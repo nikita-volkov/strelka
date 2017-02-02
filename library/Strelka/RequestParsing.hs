@@ -50,7 +50,7 @@ import qualified Data.Attoparsec.Text as Q
 import qualified Data.HashMap.Strict as G
 import qualified Network.HTTP.Media as K
 import qualified Strelka.Core.RequestParser as A
-import qualified Strelka.RequestBodyParsing as P
+import qualified Strelka.RequestBodyParsing.Parser as P
 import qualified Strelka.HTTPAuthorizationParsing as D
 import qualified Strelka.ParamsParsing.Params as H
 import qualified URLDecoders as I

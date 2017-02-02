@@ -2,7 +2,7 @@ module Strelka.ResponseBuilding where
 
 import Strelka.Prelude
 import Strelka.Core.Model
-import qualified Strelka.ResponseBodyBuilding as A
+import qualified Strelka.ResponseBodyBuilding.Builder as A
 import qualified Strelka.Core.ResponseBuilder as B
 
 
