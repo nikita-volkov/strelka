@@ -5,15 +5,15 @@ module Strelka.ParamsParsing
 (
   A.Params,
   A.param,
-  C.lenientParam,
+  A.lenientParam,
   -- * Multi-arity lenient param parser helpers
-  C.lenientParams1,
-  C.lenientParams2,
-  C.lenientParams3,
-  C.lenientParams4,
-  C.lenientParams5,
-  C.lenientParams6,
-  C.lenientParams7,
+  A.lenientParams1,
+  A.lenientParams2,
+  A.lenientParams3,
+  A.lenientParams4,
+  A.lenientParams5,
+  A.lenientParams6,
+  A.lenientParams7,
   -- * Value parsers
   B.Value,
   B.parser,

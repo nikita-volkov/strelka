@@ -4,7 +4,6 @@ where
 
 import Strelka.Prelude
 import qualified Attoparsec.Data.Implicit as B
-import qualified Strelka.ParamsParsing.Params as C
 import qualified Strelka.ParamsParsing.Value as D
 
 
@@ -63,83 +62,4 @@ INSTANCE2(UTCTime)
 
 #undef INSTANCE1
 #undef INSTANCE2
-
-
--- * Params helpers
--------------------------
-
--- | Parse a param by its name using the implicit lenient parser.
-{-# INLINE lenientParam #-}
-lenientParam :: LenientValue a => Text -> C.Params a
-lenientParam name =
-  C.param name lenientValue
-
--- | Same as 'lenientParam'.
-{-# INLINE lenientParams1 #-}
-lenientParams1 :: LenientValue a => Text -> C.Params a
-lenientParams1 =
-  lenientParam
-
--- | A helper abstracting over the Applicative composition of multiple 'lenientParam'.
-{-# INLINE lenientParams2 #-}
-lenientParams2 :: (LenientValue a, LenientValue b) => Text -> Text -> C.Params (a, b)
-lenientParams2 name1 name2 =
-  (,) <$>
-  lenientParam name1 <*>
-  lenientParam name2
-
--- | A helper abstracting over the Applicative composition of multiple 'lenientParam'.
-{-# INLINE lenientParams3 #-}
-lenientParams3 :: (LenientValue a, LenientValue b, LenientValue c) => Text -> Text -> Text -> C.Params (a, b, c)
-lenientParams3 name1 name2 name3 =
-  (,,) <$>
-  lenientParam name1 <*>
-  lenientParam name2 <*>
-  lenientParam name3
-
--- | A helper abstracting over the Applicative composition of multiple 'lenientParam'.
-{-# INLINE lenientParams4 #-}
-lenientParams4 :: (LenientValue a, LenientValue b, LenientValue c, LenientValue d) => Text -> Text -> Text -> Text -> C.Params (a, b, c, d)
-lenientParams4 name1 name2 name3 name4 =
-  (,,,) <$>
-  lenientParam name1 <*>
-  lenientParam name2 <*>
-  lenientParam name3 <*>
-  lenientParam name4
-
--- | A helper abstracting over the Applicative composition of multiple 'lenientParam'.
-{-# INLINE lenientParams5 #-}
-lenientParams5 :: (LenientValue a, LenientValue b, LenientValue c, LenientValue d, LenientValue e) => Text -> Text -> Text -> Text -> Text -> C.Params (a, b, c, d, e)
-lenientParams5 name1 name2 name3 name4 name5 =
-  (,,,,) <$>
-  lenientParam name1 <*>
-  lenientParam name2 <*>
-  lenientParam name3 <*>
-  lenientParam name4 <*>
-  lenientParam name5
-
--- | A helper abstracting over the Applicative composition of multiple 'lenientParam'.
-{-# INLINE lenientParams6 #-}
-lenientParams6 :: (LenientValue a, LenientValue b, LenientValue c, LenientValue d, LenientValue e, LenientValue f) => Text -> Text -> Text -> Text -> Text -> Text -> C.Params (a, b, c, d, e, f)
-lenientParams6 name1 name2 name3 name4 name5 name6 =
-  (,,,,,) <$>
-  lenientParam name1 <*>
-  lenientParam name2 <*>
-  lenientParam name3 <*>
-  lenientParam name4 <*>
-  lenientParam name5 <*>
-  lenientParam name6
-
--- | A helper abstracting over the Applicative composition of multiple 'lenientParam'.
-{-# INLINE lenientParams7 #-}
-lenientParams7 :: (LenientValue a, LenientValue b, LenientValue c, LenientValue d, LenientValue e, LenientValue f, LenientValue g) => Text -> Text -> Text -> Text -> Text -> Text -> Text -> C.Params (a, b, c, d, e, f, g)
-lenientParams7 name1 name2 name3 name4 name5 name6 name7 =
-  (,,,,,,) <$>
-  lenientParam name1 <*>
-  lenientParam name2 <*>
-  lenientParam name3 <*>
-  lenientParam name4 <*>
-  lenientParam name5 <*>
-  lenientParam name6 <*>
-  lenientParam name7
 
