@@ -88,7 +88,7 @@ movedPermanentlyStatus :: ResponseBuilder
 movedPermanentlyStatus =
   status 301
 
--- ** 4xx Statuses
+-- ** 4xx Client Error Statuses
 -------------------------
 
 {- |

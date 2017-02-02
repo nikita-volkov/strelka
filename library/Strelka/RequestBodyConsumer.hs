@@ -14,6 +14,9 @@ import qualified Data.Text.Encoding.Error
 import qualified Data.Text.Lazy
 import qualified Data.Text.Lazy.Encoding
 import qualified Data.Text.Lazy.Builder
+import qualified Data.HashMap.Strict as C
+import qualified Strelka.ParamsParsing.Params as A
+import qualified URLDecoders as B
 
 
 {-|
@@ -203,3 +206,13 @@ parserResult fold result =
           Right resultValue
         Data.Attoparsec.Types.Fail leftovers contexts message ->
           Left (fromString (intercalate " > " contexts <> ": " <> message))
+
+-- |
+-- Consumes the input stream as an \"application/x-www-form-urlencoded\"
+-- association list of parameters.
+paramsParser :: A.Params a -> RequestBodyConsumer (Either Text a)
+paramsParser params =
+  fmap parseBytes bytes
+  where
+    parseBytes =
+      B.query >=> A.run params . flip C.lookup
