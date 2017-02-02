@@ -14,7 +14,7 @@ import qualified Data.Text.Encoding.Error
 import qualified Data.Text.Lazy
 import qualified Data.Text.Lazy.Encoding
 import qualified Data.Text.Lazy.Builder
-import qualified Strelka.ParamsParser
+import qualified Strelka.ParamsParsing
 
 
 {-|
@@ -208,6 +208,6 @@ parserResult fold result =
 -- |
 -- Consumes the input stream as an \"application/x-www-form-urlencoded\"
 -- association list of parameters.
-paramsParser :: Strelka.ParamsParser.Params a -> RequestBodyConsumer (Either Text a)
+paramsParser :: Strelka.ParamsParsing.Params a -> RequestBodyConsumer (Either Text a)
 paramsParser params =
   undefined
