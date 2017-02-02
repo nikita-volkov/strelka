@@ -1,7 +1,7 @@
 {-|
 DSL for parsing the request.
 -}
-module Strelka.RequestParser
+module Strelka.RequestParsing
 (
   RequestParser,
   -- * Errors
@@ -50,8 +50,8 @@ import qualified Data.Attoparsec.Text as Q
 import qualified Data.HashMap.Strict as G
 import qualified Network.HTTP.Media as K
 import qualified Strelka.Core.RequestParser as A
-import qualified Strelka.RequestBodyConsumer as P
-import qualified Strelka.HTTPAuthorizationParser as D
+import qualified Strelka.RequestBodyParsing as P
+import qualified Strelka.HTTPAuthorizationParsing as D
 import qualified Strelka.ParamsParsing.Params as H
 import qualified URLDecoders as I
 

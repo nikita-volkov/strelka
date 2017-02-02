@@ -65,8 +65,8 @@ You can clone and run the according project from [the "strelka-helloworld" repo]
 module Main where
 
 import Prelude
-import qualified Strelka.RequestParser as A
-import qualified Strelka.ResponseBuilder as B
+import qualified Strelka.RequestParsing as A
+import qualified Strelka.ResponseBuilding as B
 import qualified Strelka.WAI as C
 
 main =

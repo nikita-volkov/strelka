@@ -1,4 +1,4 @@
-module Strelka.RequestBodyConsumer
+module Strelka.RequestBodyParsing
 where
 
 import Strelka.Prelude

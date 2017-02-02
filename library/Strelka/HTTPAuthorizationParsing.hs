@@ -1,4 +1,4 @@
-module Strelka.HTTPAuthorizationParser 
+module Strelka.HTTPAuthorizationParsing 
 where
 
 import Strelka.Prelude

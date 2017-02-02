@@ -1,4 +1,4 @@
-module Strelka.ResponseBodyBuilder where
+module Strelka.ResponseBodyBuilding where
 
 import Strelka.Prelude
 import qualified Data.ByteString as C

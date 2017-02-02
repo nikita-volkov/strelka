@@ -1,8 +1,8 @@
-module Strelka.ResponseBuilder where
+module Strelka.ResponseBuilding where
 
 import Strelka.Prelude
 import Strelka.Core.Model
-import qualified Strelka.ResponseBodyBuilder as A
+import qualified Strelka.ResponseBodyBuilding as A
 import qualified Strelka.Core.ResponseBuilder as B
 
 

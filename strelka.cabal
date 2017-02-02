@@ -13,6 +13,10 @@ description:
   This library exploits that fact to produce a very simple and flexible API,
   which can then be used on top of any server implementation.
   .
+  [Library Structure]
+  The API is split into a set of DSLs targeted at solving specific problems in isolation,
+  thus facilitating a proper separation of concerns.
+  .
   [Server Bindings]
   Currently only a binding to WAI and Warp is known:
   <http://hackage.haskell.org/package/strelka-wai>.
@@ -52,14 +56,14 @@ library
   hs-source-dirs:
     library
   exposed-modules:
-    Strelka.RequestParser
-    Strelka.RequestBodyConsumer
-    Strelka.ResponseBuilder
-    Strelka.ResponseBodyBuilder
+    Strelka.RequestParsing
+    Strelka.RequestBodyParsing
+    Strelka.ResponseBuilding
+    Strelka.ResponseBodyBuilding
     Strelka.ParamsParsing
   other-modules:
     Strelka.Prelude
-    Strelka.HTTPAuthorizationParser
+    Strelka.HTTPAuthorizationParsing
     Strelka.ParamsParsing.Value
     Strelka.ParamsParsing.Params
     Strelka.ParamsParsing.LenientValue
