@@ -9,7 +9,7 @@ import qualified Strelka.Core.ResponseBuilder as B
 {- |
 A composable abstraction for building an HTTP response.
 -}
-type ResponseBuilder =
+type Builder =
   B.ResponseBuilder
 
 
@@ -19,21 +19,21 @@ type ResponseBuilder =
 {- |
 Add a header by name and value.
 -}
-header :: ByteString -> ByteString -> ResponseBuilder
+header :: ByteString -> ByteString -> Builder
 header name value =
   B.ResponseBuilder (\(Response status headers body) -> Response status (Header (HeaderName name) (HeaderValue value) : headers) body)
 
 {- |
 Add a @Content-type@ header.
 -}
-contentTypeHeader :: ByteString -> ResponseBuilder
+contentTypeHeader :: ByteString -> Builder
 contentTypeHeader x =
   header "content-type" x
 
 {- |
 Add a @Location@ header.
 -}
-locationHeader :: ByteString -> ResponseBuilder
+locationHeader :: ByteString -> Builder
 locationHeader x =
   header "location" x
 
@@ -44,7 +44,7 @@ locationHeader x =
 {- |
 Set the status code.
 -}
-status :: Int -> ResponseBuilder
+status :: Int -> Builder
 status x =
   B.ResponseBuilder (\(Response _ headers body) -> Response (Status x) headers body)
 
@@ -64,7 +64,7 @@ POST an entity describing or containing the result of the action;
 
 TRACE an entity containing the request message as received by the end server.
 -}
-okayStatus :: ResponseBuilder
+okayStatus :: Builder
 okayStatus =
   status 200
 
@@ -84,7 +84,7 @@ If the 301 status code is received in response to a request other than GET or HE
       receiving a 301 status code, some existing HTTP/1.0 user agents
       will erroneously change it into a GET request.
 -}
-movedPermanentlyStatus :: ResponseBuilder
+movedPermanentlyStatus :: Builder
 movedPermanentlyStatus =
   status 301
 
@@ -96,7 +96,7 @@ Set the status code to @400@. Following is the description of this status.
 
 The request could not be understood by the server due to malformed syntax. The client SHOULD NOT repeat the request without modifications.
 -}
-badRequestStatus :: ResponseBuilder
+badRequestStatus :: Builder
 badRequestStatus =
   status 400
 
@@ -105,7 +105,7 @@ Set the status code to @401@. Following is the description of this status.
 
 The request requires user authentication. The response MUST include a WWW-Authenticate header field (section 14.47) containing a challenge applicable to the requested resource. The client MAY repeat the request with a suitable Authorization header field (section 14.8). If the request already included Authorization credentials, then the 401 response indicates that authorization has been refused for those credentials. If the 401 response contains the same challenge as the prior response, and the user agent has already attempted authentication at least once, then the user SHOULD be presented the entity that was given in the response, since that entity might include relevant diagnostic information. HTTP access authentication is explained in "HTTP Authentication: Basic and Digest Access Authentication".
 -}
-unauthorizedStatus :: ResponseBuilder
+unauthorizedStatus :: Builder
 unauthorizedStatus =
   status 401
 
@@ -114,7 +114,7 @@ Set the status code to @403@. Following is the description of this status.
 
 The server understood the request, but is refusing to fulfill it. Authorization will not help and the request SHOULD NOT be repeated. If the request method was not HEAD and the server wishes to make public why the request has not been fulfilled, it SHOULD describe the reason for the refusal in the entity. If the server does not wish to make this information available to the client, the status code 404 (Not Found) can be used instead.
 -}
-forbiddenStatus :: ResponseBuilder
+forbiddenStatus :: Builder
 forbiddenStatus =
   status 403
 
@@ -123,7 +123,7 @@ Set the status code to @404@. Following is the description of this status.
 
 The server has not found anything matching the Request-URI. No indication is given of whether the condition is temporary or permanent. The 410 (Gone) status code SHOULD be used if the server knows, through some internally configurable mechanism, that an old resource is permanently unavailable and has no forwarding address. This status code is commonly used when the server does not wish to reveal exactly why the request has been refused, or when no other response is applicable.
 -}
-notFoundStatus :: ResponseBuilder
+notFoundStatus :: Builder
 notFoundStatus =
   status 404
 
@@ -132,7 +132,7 @@ Set the status code to @405@. Following is the description of this status.
 
 The method specified in the Request-Line is not allowed for the resource identified by the Request-URI. The response MUST include an Allow header containing a list of valid methods for the requested resource.
 -}
-methodNotAllowedStatus :: ResponseBuilder
+methodNotAllowedStatus :: Builder
 methodNotAllowedStatus =
   status 405
 
@@ -151,7 +151,7 @@ Unless it was a HEAD request, the response SHOULD include an entity containing a
 
 If the response could be unacceptable, a user agent SHOULD temporarily stop receipt of more data and query the user for a decision on further actions.
 -}
-notAcceptableStatus :: ResponseBuilder
+notAcceptableStatus :: Builder
 notAcceptableStatus =
   status 406
 
@@ -163,7 +163,7 @@ Set the status code to @500@. Following is the description of this status.
 
 The server encountered an unexpected condition which prevented it from fulfilling the request.
 -}
-internalErrorStatus :: ResponseBuilder
+internalErrorStatus :: Builder
 internalErrorStatus =
   status 500
 
@@ -174,28 +174,28 @@ internalErrorStatus =
 {- |
 Set the body.
 -}
-body :: A.ResponseBodyBuilder -> ResponseBuilder
-body (A.ResponseBodyBuilder x) =
+body :: A.Builder -> Builder
+body (A.Builder x) =
   B.ResponseBuilder (\(Response status headers _) -> Response status headers (OutputStream x)) 
 
 {- |
 Add a @Content-type@ header with the value of @text/plain@ and set the body.
 -}
-text :: A.ResponseBodyBuilder -> ResponseBuilder
+text :: A.Builder -> Builder
 text x =
   contentTypeHeader "text/plain" <> body x
 
 {- |
 Add a @Content-type@ header with the value of @text/html@ and set the body.
 -}
-html :: A.ResponseBodyBuilder -> ResponseBuilder
+html :: A.Builder -> Builder
 html x =
   contentTypeHeader "text/html" <> body x
 
 {- |
 Add a @Content-type@ header with the value of @application/json@ and set the body.
 -}
-json :: A.ResponseBodyBuilder -> ResponseBuilder
+json :: A.Builder -> Builder
 json x =
   contentTypeHeader "application/json" <> body x
 
@@ -206,13 +206,13 @@ json x =
 {- |
 Set the status code to 401, adding a @WWW-Authenticate@ header with specified Realm.
 -}
-unauthorized :: ByteString -> ResponseBuilder
+unauthorized :: ByteString -> Builder
 unauthorized realm =
   unauthorizedStatus <> header "WWW-Authenticate" ("Basic realm=\"" <> realm <> "\"")
 
 {- |
 Set the status code to 301, adding a @Location@ header with the specified URL.
 -}
-redirect :: ByteString -> ResponseBuilder
+redirect :: ByteString -> Builder
 redirect url =
   movedPermanentlyStatus <> locationHeader url

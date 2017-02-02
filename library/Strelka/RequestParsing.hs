@@ -3,7 +3,7 @@ DSL for parsing the request.
 -}
 module Strelka.RequestParsing
 (
-  RequestParser,
+  Parser,
   -- * Errors
   fail,
   liftEither,
@@ -60,7 +60,7 @@ import qualified URLDecoders as I
 Parser of an HTTP request.
 Analyzes its meta information, consumes the path segments and the body.
 -}
-type RequestParser =
+type Parser =
   A.RequestParser
 
 
@@ -70,7 +70,7 @@ type RequestParser =
 {-|
 Fail with a text message.
 -}
-fail :: Monad m => Text -> RequestParser m a
+fail :: Monad m => Text -> Parser m a
 fail message =
   A.RequestParser $
   lift $
@@ -83,7 +83,7 @@ fail message =
 {-|
 Lift Either, interpreting Left as a failure.
 -}
-liftEither :: Monad m => Either Text a -> RequestParser m a
+liftEither :: Monad m => Either Text a -> Parser m a
 liftEither =
   A.RequestParser .
   lift .
@@ -94,7 +94,7 @@ liftEither =
 {-|
 Lift Maybe, interpreting Nothing as a failure.
 -}
-liftMaybe :: Monad m => Maybe a -> RequestParser m a
+liftMaybe :: Monad m => Maybe a -> Parser m a
 liftMaybe =
   liftEither .
   maybe (Left "Unexpected Nothing") Right
@@ -102,7 +102,7 @@ liftMaybe =
 {-|
 Try a parser, extracting the error as Either.
 -}
-unliftEither :: Monad m => RequestParser m a -> RequestParser m (Either Text a)
+unliftEither :: Monad m => Parser m a -> Parser m (Either Text a)
 unliftEither =
   tryError
 
@@ -113,7 +113,7 @@ unliftEither =
 {-|
 Consume the next segment of the path.
 -}
-consumeSegment :: Monad m => RequestParser m Text
+consumeSegment :: Monad m => Parser m Text
 consumeSegment =
   A.RequestParser $
   lift $
@@ -127,14 +127,14 @@ consumeSegment =
 {-|
 Consume the next segment of the path with Attoparsec parser.
 -}
-consumeSegmentWithParser :: Monad m => Q.Parser a -> RequestParser m a
+consumeSegmentWithParser :: Monad m => Q.Parser a -> Parser m a
 consumeSegmentWithParser parser =
   consumeSegment >>= liftEither . first E.pack . Q.parseOnly parser
 
 {-|
 Consume the next segment if it matches the provided value and fail otherwise.
 -}
-consumeSegmentIfIs :: Monad m => Text -> RequestParser m ()
+consumeSegmentIfIs :: Monad m => Text -> Parser m ()
 consumeSegmentIfIs expectedSegment =
   do
     segment <- consumeSegment
@@ -143,7 +143,7 @@ consumeSegmentIfIs expectedSegment =
 {-|
 Fail if there's any path segments left unconsumed.
 -}
-ensureThatNoSegmentsIsLeft :: Monad m => RequestParser m ()
+ensureThatNoSegmentsIsLeft :: Monad m => Parser m ()
 ensureThatNoSegmentsIsLeft =
   A.RequestParser (lift (gets null)) >>= guard
 
@@ -155,7 +155,7 @@ ensureThatNoSegmentsIsLeft =
 Parse the request query,
 i.e. the URL part that is between the \"?\" and \"#\" characters.
 -}
-parseQuery :: Monad m => H.Params a -> RequestParser m a
+parseQuery :: Monad m => H.Params a -> Parser m a
 parseQuery parser =
   do
     Request _ _ (Query queryBytes) _ _ <- A.RequestParser ask
@@ -172,7 +172,7 @@ parseQuery parser =
 {-|
 Get the request method.
 -}
-getMethod :: Monad m => RequestParser m ByteString
+getMethod :: Monad m => Parser m ByteString
 getMethod =
   do
     Request (Method method) _ _ _ _ <- A.RequestParser ask
@@ -181,7 +181,7 @@ getMethod =
 {-|
 Ensure that the method matches the provided value __in lower-case__.
 -}
-ensureThatMethodIs :: Monad m => ByteString -> RequestParser m ()
+ensureThatMethodIs :: Monad m => ByteString -> Parser m ()
 ensureThatMethodIs expectedMethod =
   do
     method <- getMethod
@@ -190,42 +190,42 @@ ensureThatMethodIs expectedMethod =
 {-|
 Same as @'ensureThatMethodIs' "get"@.
 -}
-ensureThatMethodIsGet :: Monad m => RequestParser m ()
+ensureThatMethodIsGet :: Monad m => Parser m ()
 ensureThatMethodIsGet =
   ensureThatMethodIs "get"
 
 {-|
 Same as @'ensureThatMethodIs' "post"@.
 -}
-ensureThatMethodIsPost :: Monad m => RequestParser m ()
+ensureThatMethodIsPost :: Monad m => Parser m ()
 ensureThatMethodIsPost =
   ensureThatMethodIs "post"
 
 {-|
 Same as @'ensureThatMethodIs' "put"@.
 -}
-ensureThatMethodIsPut :: Monad m => RequestParser m ()
+ensureThatMethodIsPut :: Monad m => Parser m ()
 ensureThatMethodIsPut =
   ensureThatMethodIs "put"
 
 {-|
 Same as @'ensureThatMethodIs' "delete"@.
 -}
-ensureThatMethodIsDelete :: Monad m => RequestParser m ()
+ensureThatMethodIsDelete :: Monad m => Parser m ()
 ensureThatMethodIsDelete =
   ensureThatMethodIs "delete"
 
 {-|
 Same as @'ensureThatMethodIs' "head"@.
 -}
-ensureThatMethodIsHead :: Monad m => RequestParser m ()
+ensureThatMethodIsHead :: Monad m => Parser m ()
 ensureThatMethodIsHead =
   ensureThatMethodIs "head"
 
 {-|
 Same as @'ensureThatMethodIs' "trace"@.
 -}
-ensureThatMethodIsTrace :: Monad m => RequestParser m ()
+ensureThatMethodIsTrace :: Monad m => Parser m ()
 ensureThatMethodIsTrace =
   ensureThatMethodIs "trace"
 
@@ -236,7 +236,7 @@ ensureThatMethodIsTrace =
 {-|
 Lookup a header by name __in lower-case__.
 -}
-getHeader :: Monad m => ByteString -> RequestParser m ByteString
+getHeader :: Monad m => ByteString -> Parser m ByteString
 getHeader name =
   do
     Request _ _ _ headers _ <- A.RequestParser ask
@@ -247,7 +247,7 @@ Ensure that the request provides an Accept header,
 which includes the specified content type.
 Content type must be __in lower-case__.
 -}
-ensureThatAccepts :: Monad m => ByteString -> RequestParser m ()
+ensureThatAccepts :: Monad m => ByteString -> Parser m ()
 ensureThatAccepts contentType =
   checkIfAccepts contentType >>=
   liftEither . bool (Left ("Unacceptable content-type: " <> fromString (show contentType))) (Right ())
@@ -255,21 +255,21 @@ ensureThatAccepts contentType =
 {-|
 Same as @'ensureThatAccepts' "text/plain"@.
 -}
-ensureThatAcceptsText :: Monad m => RequestParser m ()
+ensureThatAcceptsText :: Monad m => Parser m ()
 ensureThatAcceptsText =
   ensureThatAccepts "text/plain"
 
 {-|
 Same as @'ensureThatAccepts' "text/html"@.
 -}
-ensureThatAcceptsHTML :: Monad m => RequestParser m ()
+ensureThatAcceptsHTML :: Monad m => Parser m ()
 ensureThatAcceptsHTML =
   ensureThatAccepts "text/html"
 
 {-|
 Same as @'ensureThatAccepts' "application/json"@.
 -}
-ensureThatAcceptsJSON :: Monad m => RequestParser m ()
+ensureThatAcceptsJSON :: Monad m => Parser m ()
 ensureThatAcceptsJSON =
   ensureThatAccepts "application/json"
 
@@ -278,14 +278,14 @@ Check whether the request provides an Accept header,
 which includes the specified content type.
 Content type must be __in lower-case__.
 -}
-checkIfAccepts :: Monad m => ByteString -> RequestParser m Bool
+checkIfAccepts :: Monad m => ByteString -> Parser m Bool
 checkIfAccepts contentType =
   liftM (isJust . K.matchAccept [contentType]) (getHeader "accept")
 
 {-|
 Parse the username and password from the basic authorization header.
 -}
-getAuthorization :: Monad m => RequestParser m (Text, Text)
+getAuthorization :: Monad m => Parser m (Text, Text)
 getAuthorization =
   getHeader "authorization" >>= liftEither . D.basicCredentials
 
@@ -294,14 +294,14 @@ getAuthorization =
 -------------------------
 
 {-|
-Consume the request body using the provided RequestBodyConsumer.
+Consume the request body using the provided Parser.
 
 [NOTICE]
 Since the body is consumed as a stream,
 you can only consume it once regardless of the Alternative branching.
 -}
-consumeBody :: MonadIO m => P.RequestBodyConsumer a -> RequestParser m a
-consumeBody (P.RequestBodyConsumer consume) =
+consumeBody :: MonadIO m => P.Parser a -> Parser m a
+consumeBody (P.Parser consume) =
   do
     Request _ _ _ _ (InputStream getChunk) <- A.RequestParser ask
     liftIO (consume getChunk)

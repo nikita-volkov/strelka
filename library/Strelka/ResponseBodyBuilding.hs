@@ -13,56 +13,56 @@ import qualified Data.Text.Lazy.Builder as J
 {-|
 A builder of the response body.
 -}
-newtype ResponseBodyBuilder =
-  ResponseBodyBuilder ((ByteString -> IO ()) -> IO () -> IO ())
+newtype Builder =
+  Builder ((ByteString -> IO ()) -> IO () -> IO ())
 
-instance IsString ResponseBodyBuilder where
+instance IsString Builder where
   fromString string =
     bytesBuilder (E.stringUtf8 string)
 
-instance Monoid ResponseBodyBuilder where
+instance Monoid Builder where
   mempty =
-    ResponseBodyBuilder (\_ flush -> flush)
-  mappend (ResponseBodyBuilder cont1) (ResponseBodyBuilder cont2) =
-    ResponseBodyBuilder (\feed flush -> cont1 feed (pure ()) *> cont2 feed flush)
+    Builder (\_ flush -> flush)
+  mappend (Builder cont1) (Builder cont2) =
+    Builder (\feed flush -> cont1 feed (pure ()) *> cont2 feed flush)
 
-instance Semigroup ResponseBodyBuilder
+instance Semigroup Builder
 
 
 {-|
 Lift ByteString.
 -}
-bytes :: ByteString -> ResponseBodyBuilder
+bytes :: ByteString -> Builder
 bytes x =
-  ResponseBodyBuilder (\feed flush -> feed x *> flush)
+  Builder (\feed flush -> feed x *> flush)
 
 {-|
 Lift lazy ByteString.
 -}
-lazyBytes :: D.ByteString -> ResponseBodyBuilder
+lazyBytes :: D.ByteString -> Builder
 lazyBytes x =
-  ResponseBodyBuilder (\feed flush -> D.foldlChunks (\io chunk -> io >> feed chunk) (pure ()) x >> flush)
+  Builder (\feed flush -> D.foldlChunks (\io chunk -> io >> feed chunk) (pure ()) x >> flush)
 
 {-|
 Lift ByteString Builder.
 -}
-bytesBuilder :: E.Builder -> ResponseBodyBuilder
+bytesBuilder :: E.Builder -> Builder
 bytesBuilder =
   lazyBytes . E.toLazyByteString
 
 {-|
 Lift Text.
 -}
-text :: Text -> ResponseBodyBuilder
+text :: Text -> Builder
 text text =
   bytes (H.encodeUtf8 text)
 
 {-|
 Lift lazy Text.
 -}
-lazyText :: F.Text -> ResponseBodyBuilder
+lazyText :: F.Text -> Builder
 lazyText text =
-  ResponseBodyBuilder impl
+  Builder impl
   where
     impl feed flush =
       F.foldlChunks step (pure ()) text *> flush
@@ -76,7 +76,7 @@ lazyText text =
 {-|
 Lift ByteString Builder.
 -}
-textBuilder :: J.Builder -> ResponseBodyBuilder
+textBuilder :: J.Builder -> Builder
 textBuilder =
   lazyText . J.toLazyText
 

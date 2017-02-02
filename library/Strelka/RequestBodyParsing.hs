@@ -22,17 +22,17 @@ import qualified URLDecoders as B
 {-|
 A specification of how to consume the request body byte-stream.
 -}
-newtype RequestBodyConsumer a =
-  RequestBodyConsumer (IO ByteString -> IO a)
+newtype Parser a =
+  Parser (IO ByteString -> IO a)
   deriving (Functor)
 
 {-|
 Fold with support for early termination,
 which is interpreted from "Left".
 -}
-foldBytesWithTermination :: (a -> ByteString -> Either a a) -> a -> RequestBodyConsumer a
+foldBytesWithTermination :: (a -> ByteString -> Either a a) -> a -> Parser a
 foldBytesWithTermination step init =
-  RequestBodyConsumer consumer
+  Parser consumer
   where
     consumer getChunk =
       recur init
@@ -51,7 +51,7 @@ foldBytesWithTermination step init =
 Fold with support for early termination,
 which is interpreted from "Left".
 -}
-foldTextWithTermination :: (a -> Text -> Either a a) -> a -> RequestBodyConsumer a
+foldTextWithTermination :: (a -> Text -> Either a a) -> a -> Parser a
 foldTextWithTermination step init =
   fmap snd (foldBytesWithTermination bytesStep bytesInit)
   where
@@ -70,9 +70,9 @@ foldTextWithTermination step init =
 {-|
 Fold over ByteString chunks.
 -}
-foldBytes :: (a -> ByteString -> a) -> a -> RequestBodyConsumer a
+foldBytes :: (a -> ByteString -> a) -> a -> Parser a
 foldBytes step init =
-  RequestBodyConsumer consumer
+  Parser consumer
   where
     consumer getChunk =
       recur init
@@ -88,7 +88,7 @@ foldBytes step init =
 {-|
 Fold over text chunks decoded using UTF8.
 -}
-foldText :: (a -> Text -> a) -> a -> RequestBodyConsumer a
+foldText :: (a -> Text -> a) -> a -> Parser a
 foldText step init =
   fmap fst (foldBytes bytesStep bytesInit)
   where
@@ -107,56 +107,56 @@ foldText step init =
 {- |
 Similar to "Foldable"\'s 'foldMap'.
 -}
-buildFromBytes :: Monoid a => (ByteString -> a) -> RequestBodyConsumer a
+buildFromBytes :: Monoid a => (ByteString -> a) -> Parser a
 buildFromBytes proj =
   foldBytes (\l r -> mappend l (proj r)) mempty
 
 {- |
 Similar to "Foldable"\'s 'foldMap'.
 -}
-buildFromText :: Monoid a => (Text -> a) -> RequestBodyConsumer a
+buildFromText :: Monoid a => (Text -> a) -> Parser a
 buildFromText proj =
   foldText (\l r -> mappend l (proj r)) mempty
 
 {-|
 Consume as ByteString.
 -}
-bytes :: RequestBodyConsumer ByteString
+bytes :: Parser ByteString
 bytes =
   fmap Data.ByteString.Lazy.toStrict lazyBytes
 
 {-|
 Consume as lazy ByteString.
 -}
-lazyBytes :: RequestBodyConsumer Data.ByteString.Lazy.ByteString
+lazyBytes :: Parser Data.ByteString.Lazy.ByteString
 lazyBytes =
   fmap Data.ByteString.Builder.toLazyByteString bytesBuilder
 
 {-|
 Consume as ByteString Builder.
 -}
-bytesBuilder :: RequestBodyConsumer Data.ByteString.Builder.Builder
+bytesBuilder :: Parser Data.ByteString.Builder.Builder
 bytesBuilder =
   buildFromBytes Data.ByteString.Builder.byteString
 
 {-|
 Consume as Text.
 -}
-text :: RequestBodyConsumer Text
+text :: Parser Text
 text =
   fmap Data.Text.Lazy.toStrict lazyText
 
 {-|
 Consume as lazy Text.
 -}
-lazyText :: RequestBodyConsumer Data.Text.Lazy.Text
+lazyText :: Parser Data.Text.Lazy.Text
 lazyText =
   fmap Data.Text.Lazy.Builder.toLazyText textBuilder
 
 {-|
 Consume as Text Builder.
 -}
-textBuilder :: RequestBodyConsumer Data.Text.Lazy.Builder.Builder
+textBuilder :: Parser Data.Text.Lazy.Builder.Builder
 textBuilder =
   fmap fst (foldBytes step init)
   where
@@ -172,7 +172,7 @@ Lift an Attoparsec ByteString parser.
 
 Consumption is non-greedy and terminates when the parser is done.
 -}
-bytesParser :: Data.Attoparsec.ByteString.Parser a -> RequestBodyConsumer (Either Text a)
+bytesParser :: Data.Attoparsec.ByteString.Parser a -> Parser (Either Text a)
 bytesParser parser =
   parserResult foldBytesWithTermination (Data.Attoparsec.ByteString.Partial (Data.Attoparsec.ByteString.parse parser))
 
@@ -181,14 +181,14 @@ Lift an Attoparsec Text parser.
 
 Consumption is non-greedy and terminates when the parser is done.
 -}
-textParser :: Data.Attoparsec.Text.Parser a -> RequestBodyConsumer (Either Text a)
+textParser :: Data.Attoparsec.Text.Parser a -> Parser (Either Text a)
 textParser parser =
   parserResult foldTextWithTermination (Data.Attoparsec.Text.Partial (Data.Attoparsec.Text.parse parser))
 
 {-|
 Given a chunk-specialized terminating fold implementation lifts a generic Attoparsec result.
 -}
-parserResult :: Monoid i => (forall a. (a -> i -> Either a a) -> a -> RequestBodyConsumer a) -> Data.Attoparsec.Types.IResult i a -> RequestBodyConsumer (Either Text a)
+parserResult :: Monoid i => (forall a. (a -> i -> Either a a) -> a -> Parser a) -> Data.Attoparsec.Types.IResult i a -> Parser (Either Text a)
 parserResult fold result =
   fmap finalise (fold step result)
   where
@@ -210,7 +210,7 @@ parserResult fold result =
 -- |
 -- Consumes the input stream as an \"application/x-www-form-urlencoded\"
 -- association list of parameters.
-paramsParser :: A.Params a -> RequestBodyConsumer (Either Text a)
+paramsParser :: A.Params a -> Parser (Either Text a)
 paramsParser params =
   fmap parseBytes bytes
   where
