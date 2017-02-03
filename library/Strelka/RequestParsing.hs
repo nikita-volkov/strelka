@@ -12,8 +12,15 @@ module Strelka.RequestParsing
   segmentWithParser,
   segmentIs,
   noSegmentsLeft,
-  -- * Params
-  query,
+  -- * Query
+  query1,
+  query2,
+  query3,
+  query4,
+  query5,
+  query6,
+  query7,
+  queryWithParser,
   -- * Methods
   method,
   methodIs,
@@ -52,6 +59,7 @@ import qualified Strelka.RequestBodyParsing.Parser as P
 import qualified Strelka.RequestBodyParsing as N
 import qualified Strelka.HTTPAuthorizationParsing as D
 import qualified Strelka.ParamsParsing.Params as H
+import qualified Strelka.ParamsParsing as O
 import qualified URLDecoders as I
 import qualified Attoparsec.Data.Implicit as J
 
@@ -165,15 +173,73 @@ noSegmentsLeft =
   A.RequestParser (lift (gets null)) >>= guard
 
 
--- * Params
+-- * Query
 -------------------------
 
 {-|
-Parse the request query,
-i.e. the URL part that is between the \"?\" and \"#\" characters.
+Parse the query using implicit parsers by specifying the names of parameters.
 -}
-query :: Monad m => H.Params a -> Parser m a
-query parser =
+{-# INLINE query1 #-}
+query1 :: (Monad m, O.DefaultValue a) => Text -> Parser m a
+query1 name1 =
+  queryWithParser (O.defaultParams1 name1)
+
+{-|
+Parse the query using implicit parsers by specifying the names of parameters.
+-}
+{-# INLINE query2 #-}
+query2 :: (Monad m, O.DefaultValue a, O.DefaultValue b) => Text -> Text -> Parser m (a, b)
+query2 name1 name2 =
+  queryWithParser (O.defaultParams2 name1 name2)
+
+{-|
+Parse the query using implicit parsers by specifying the names of parameters.
+-}
+{-# INLINE query3 #-}
+query3 :: (Monad m, O.DefaultValue a, O.DefaultValue b, O.DefaultValue c) => Text -> Text -> Text -> Parser m (a, b, c)
+query3 name1 name2 name3 =
+  queryWithParser (O.defaultParams3 name1 name2 name3)
+
+{-|
+Parse the query using implicit parsers by specifying the names of parameters.
+-}
+{-# INLINE query4 #-}
+query4 :: (Monad m, O.DefaultValue a, O.DefaultValue b, O.DefaultValue c, O.DefaultValue d) => Text -> Text -> Text -> Text -> Parser m (a, b, c, d)
+query4 name1 name2 name3 name4 =
+  queryWithParser (O.defaultParams4 name1 name2 name3 name4)
+
+{-|
+Parse the query using implicit parsers by specifying the names of parameters.
+-}
+{-# INLINE query5 #-}
+query5 :: (Monad m, O.DefaultValue a, O.DefaultValue b, O.DefaultValue c, O.DefaultValue d, O.DefaultValue e) => Text -> Text -> Text -> Text -> Text -> Parser m (a, b, c, d, e)
+query5 name1 name2 name3 name4 name5 =
+  queryWithParser (O.defaultParams5 name1 name2 name3 name4 name5)
+
+{-|
+Parse the query using implicit parsers by specifying the names of parameters.
+-}
+{-# INLINE query6 #-}
+query6 :: (Monad m, O.DefaultValue a, O.DefaultValue b, O.DefaultValue c, O.DefaultValue d, O.DefaultValue e, O.DefaultValue f) => Text -> Text -> Text -> Text -> Text -> Text -> Parser m (a, b, c, d, e, f)
+query6 name1 name2 name3 name4 name5 name6 =
+  queryWithParser (O.defaultParams6 name1 name2 name3 name4 name5 name6)
+
+{-|
+Parse the query using implicit parsers by specifying the names of parameters.
+-}
+{-# INLINE query7 #-}
+query7 :: (Monad m, O.DefaultValue a, O.DefaultValue b, O.DefaultValue c, O.DefaultValue d, O.DefaultValue e, O.DefaultValue f, O.DefaultValue g) => Text -> Text -> Text -> Text -> Text -> Text -> Text -> Parser m (a, b, c, d, e, f, g)
+query7 name1 name2 name3 name4 name5 name6 name7 =
+  queryWithParser (O.defaultParams7 name1 name2 name3 name4 name5 name6 name7)
+
+{-|
+Parse the request query,
+i.e. the URL part that is between the \"?\" and \"#\" characters,
+with an explicitly specified parser.
+-}
+{-# INLINE queryWithParser #-}
+queryWithParser :: Monad m => H.Params a -> Parser m a
+queryWithParser parser =
   do
     Request _ _ (Query queryBytes) _ _ <- A.RequestParser ask
     case I.query queryBytes of
