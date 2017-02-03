@@ -32,6 +32,7 @@ module Strelka.RequestParsing
   authorization,
   -- * Body Consumption
   body,
+  bodyWithParser,
 )
 where
 
@@ -48,6 +49,7 @@ import qualified Data.HashMap.Strict as G
 import qualified Network.HTTP.Media as K
 import qualified Strelka.Core.RequestParser as A
 import qualified Strelka.RequestBodyParsing.Parser as P
+import qualified Strelka.RequestBodyParsing as N
 import qualified Strelka.HTTPAuthorizationParsing as D
 import qualified Strelka.ParamsParsing.Params as H
 import qualified URLDecoders as I
@@ -309,14 +311,25 @@ authorization =
 -------------------------
 
 {-|
-Consume the request body using the provided Parser.
+Consume the request body using an implicit parser.
 
 [NOTICE]
 Since the body is consumed as a stream,
 you can only consume it once regardless of the Alternative branching.
 -}
-body :: MonadIO m => P.Parser a -> Parser m a
-body (P.Parser consume) =
+body :: (MonadIO m, N.DefaultParser a) => Parser m a
+body =
+  bodyWithParser N.defaultParser
+
+{-|
+Consume the request body using the explicitly specified parser.
+
+[NOTICE]
+Since the body is consumed as a stream,
+you can only consume it once regardless of the Alternative branching.
+-}
+bodyWithParser :: MonadIO m => P.Parser a -> Parser m a
+bodyWithParser (P.Parser consume) =
   do
     Request _ _ _ _ (InputStream getChunk) <- A.RequestParser ask
     liftIO (consume getChunk) >>= liftEither
