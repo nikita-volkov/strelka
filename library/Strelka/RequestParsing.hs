@@ -10,7 +10,6 @@ module Strelka.RequestParsing
   -- * Path Segments
   segment,
   segmentWithParser,
-  segmentText,
   segmentIs,
   noSegmentsLeft,
   -- * Params
