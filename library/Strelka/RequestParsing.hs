@@ -31,7 +31,6 @@ module Strelka.RequestParsing
   ensureThatAcceptsText,
   ensureThatAcceptsHTML,
   ensureThatAcceptsJSON,
-  checkIfAccepts,
   getAuthorization,
   -- * Body Consumption
   consumeBody,
