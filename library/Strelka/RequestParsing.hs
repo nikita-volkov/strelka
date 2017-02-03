@@ -10,6 +10,7 @@ module Strelka.RequestParsing
   -- * Path Segments
   segment,
   segmentWithParser,
+  segmentWithLenientParser,
   segmentIs,
   noSegmentsLeft,
   -- * Params
@@ -51,6 +52,7 @@ import qualified Strelka.RequestBodyParsing.Parser as P
 import qualified Strelka.HTTPAuthorizationParsing as D
 import qualified Strelka.ParamsParsing.Params as H
 import qualified URLDecoders as I
+import qualified Attoparsec.Data.Implicit as J
 
 
 {-|
@@ -127,6 +129,13 @@ Consume the next segment of the path with Attoparsec parser.
 segmentWithParser :: Monad m => Q.Parser a -> Parser m a
 segmentWithParser parser =
   segment >>= liftEither . first E.pack . Q.parseOnly parser
+
+{-|
+Consume the next segment of the path with an implicit lenient Attoparsec parser.
+-}
+segmentWithLenientParser :: (Monad m, J.LenientParser a) => Parser m a
+segmentWithLenientParser =
+  segmentWithParser (J.lenientParser <* Q.endOfInput)
 
 {-|
 Consume the next segment if it matches the provided value and failure otherwise.
