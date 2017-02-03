@@ -44,7 +44,7 @@ lazyBytes x =
   Builder (\feed flush -> D.foldlChunks (\io chunk -> io >> feed chunk) (pure ()) x >> flush)
 
 {-|
-Lift ByteString Builder.
+Lift a ByteString builder.
 -}
 bytesBuilder :: E.Builder -> Builder
 bytesBuilder =
@@ -74,7 +74,7 @@ lazyText text =
               H.encodeUtf8 textChunk
 
 {-|
-Lift ByteString Builder.
+Lift a Text builder.
 -}
 textBuilder :: J.Builder -> Builder
 textBuilder =
