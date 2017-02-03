@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
-module Strelka.RequestBodyParsing.LenientParser
+module Strelka.RequestBodyParsing.DefaultParser
 where
 
 import Strelka.Prelude
@@ -16,14 +16,14 @@ import qualified ByteString.TreeBuilder as H
 {-|
 Provides a default request body parser.
 -}
-class LenientParser a where
-  lenientParser :: A.Parser a
+class DefaultParser a where
+  defaultParser :: A.Parser a
 
 
 -- * Generated instances
 -------------------------
 
-#define INSTANCE(TYPE, FUNCTION) instance LenientParser TYPE where {{-# INLINE lenientParser #-}; lenientParser = FUNCTION;}
+#define INSTANCE(TYPE, FUNCTION) instance DefaultParser TYPE where {{-# INLINE defaultParser #-}; defaultParser = FUNCTION;}
 #define TEXT_PARSER_INSTANCE(TYPE) INSTANCE(TYPE, A.textParser B.lenientParser)
 
 INSTANCE(Text, A.text)

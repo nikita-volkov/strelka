@@ -2,7 +2,7 @@ module Strelka.ParamsParsing.Params
 where
 
 import Strelka.Prelude
-import qualified Strelka.ParamsParsing.LenientValue as A
+import qualified Strelka.ParamsParsing.DefaultValue as A
 import qualified Strelka.ParamsParsing.Value as C
 
 
@@ -38,81 +38,81 @@ param name value =
               "Parameter \"" <> name <> "\" values parsing failure: " <> x
 
 
--- * Lenient Helpers
+-- * Default Helpers
 -------------------------
 
--- | Parse a param by its name using the implicit lenient parser.
-{-# INLINE lenientParam #-}
-lenientParam :: A.LenientValue a => Text -> Params a
-lenientParam name =
-  param name A.lenientValue
+-- | Parse a param by its name using the implicit default parser.
+{-# INLINE defaultParam #-}
+defaultParam :: A.DefaultValue a => Text -> Params a
+defaultParam name =
+  param name A.defaultValue
 
--- | Same as 'lenientParam'.
-{-# INLINE lenientParams1 #-}
-lenientParams1 :: A.LenientValue a => Text -> Params a
-lenientParams1 =
-  lenientParam
+-- | Same as 'defaultParam'.
+{-# INLINE defaultParams1 #-}
+defaultParams1 :: A.DefaultValue a => Text -> Params a
+defaultParams1 =
+  defaultParam
 
--- | A helper abstracting over the Applicative composition of multiple 'lenientParam'.
-{-# INLINE lenientParams2 #-}
-lenientParams2 :: (A.LenientValue a, A.LenientValue b) => Text -> Text -> Params (a, b)
-lenientParams2 name1 name2 =
+-- | A helper abstracting over the Applicative composition of multiple 'defaultParam'.
+{-# INLINE defaultParams2 #-}
+defaultParams2 :: (A.DefaultValue a, A.DefaultValue b) => Text -> Text -> Params (a, b)
+defaultParams2 name1 name2 =
   (,) <$>
-  lenientParam name1 <*>
-  lenientParam name2
+  defaultParam name1 <*>
+  defaultParam name2
 
--- | A helper abstracting over the Applicative composition of multiple 'lenientParam'.
-{-# INLINE lenientParams3 #-}
-lenientParams3 :: (A.LenientValue a, A.LenientValue b, A.LenientValue c) => Text -> Text -> Text -> Params (a, b, c)
-lenientParams3 name1 name2 name3 =
+-- | A helper abstracting over the Applicative composition of multiple 'defaultParam'.
+{-# INLINE defaultParams3 #-}
+defaultParams3 :: (A.DefaultValue a, A.DefaultValue b, A.DefaultValue c) => Text -> Text -> Text -> Params (a, b, c)
+defaultParams3 name1 name2 name3 =
   (,,) <$>
-  lenientParam name1 <*>
-  lenientParam name2 <*>
-  lenientParam name3
+  defaultParam name1 <*>
+  defaultParam name2 <*>
+  defaultParam name3
 
--- | A helper abstracting over the Applicative composition of multiple 'lenientParam'.
-{-# INLINE lenientParams4 #-}
-lenientParams4 :: (A.LenientValue a, A.LenientValue b, A.LenientValue c, A.LenientValue d) => Text -> Text -> Text -> Text -> Params (a, b, c, d)
-lenientParams4 name1 name2 name3 name4 =
+-- | A helper abstracting over the Applicative composition of multiple 'defaultParam'.
+{-# INLINE defaultParams4 #-}
+defaultParams4 :: (A.DefaultValue a, A.DefaultValue b, A.DefaultValue c, A.DefaultValue d) => Text -> Text -> Text -> Text -> Params (a, b, c, d)
+defaultParams4 name1 name2 name3 name4 =
   (,,,) <$>
-  lenientParam name1 <*>
-  lenientParam name2 <*>
-  lenientParam name3 <*>
-  lenientParam name4
+  defaultParam name1 <*>
+  defaultParam name2 <*>
+  defaultParam name3 <*>
+  defaultParam name4
 
--- | A helper abstracting over the Applicative composition of multiple 'lenientParam'.
-{-# INLINE lenientParams5 #-}
-lenientParams5 :: (A.LenientValue a, A.LenientValue b, A.LenientValue c, A.LenientValue d, A.LenientValue e) => Text -> Text -> Text -> Text -> Text -> Params (a, b, c, d, e)
-lenientParams5 name1 name2 name3 name4 name5 =
+-- | A helper abstracting over the Applicative composition of multiple 'defaultParam'.
+{-# INLINE defaultParams5 #-}
+defaultParams5 :: (A.DefaultValue a, A.DefaultValue b, A.DefaultValue c, A.DefaultValue d, A.DefaultValue e) => Text -> Text -> Text -> Text -> Text -> Params (a, b, c, d, e)
+defaultParams5 name1 name2 name3 name4 name5 =
   (,,,,) <$>
-  lenientParam name1 <*>
-  lenientParam name2 <*>
-  lenientParam name3 <*>
-  lenientParam name4 <*>
-  lenientParam name5
+  defaultParam name1 <*>
+  defaultParam name2 <*>
+  defaultParam name3 <*>
+  defaultParam name4 <*>
+  defaultParam name5
 
--- | A helper abstracting over the Applicative composition of multiple 'lenientParam'.
-{-# INLINE lenientParams6 #-}
-lenientParams6 :: (A.LenientValue a, A.LenientValue b, A.LenientValue c, A.LenientValue d, A.LenientValue e, A.LenientValue f) => Text -> Text -> Text -> Text -> Text -> Text -> Params (a, b, c, d, e, f)
-lenientParams6 name1 name2 name3 name4 name5 name6 =
+-- | A helper abstracting over the Applicative composition of multiple 'defaultParam'.
+{-# INLINE defaultParams6 #-}
+defaultParams6 :: (A.DefaultValue a, A.DefaultValue b, A.DefaultValue c, A.DefaultValue d, A.DefaultValue e, A.DefaultValue f) => Text -> Text -> Text -> Text -> Text -> Text -> Params (a, b, c, d, e, f)
+defaultParams6 name1 name2 name3 name4 name5 name6 =
   (,,,,,) <$>
-  lenientParam name1 <*>
-  lenientParam name2 <*>
-  lenientParam name3 <*>
-  lenientParam name4 <*>
-  lenientParam name5 <*>
-  lenientParam name6
+  defaultParam name1 <*>
+  defaultParam name2 <*>
+  defaultParam name3 <*>
+  defaultParam name4 <*>
+  defaultParam name5 <*>
+  defaultParam name6
 
--- | A helper abstracting over the Applicative composition of multiple 'lenientParam'.
-{-# INLINE lenientParams7 #-}
-lenientParams7 :: (A.LenientValue a, A.LenientValue b, A.LenientValue c, A.LenientValue d, A.LenientValue e, A.LenientValue f, A.LenientValue g) => Text -> Text -> Text -> Text -> Text -> Text -> Text -> Params (a, b, c, d, e, f, g)
-lenientParams7 name1 name2 name3 name4 name5 name6 name7 =
+-- | A helper abstracting over the Applicative composition of multiple 'defaultParam'.
+{-# INLINE defaultParams7 #-}
+defaultParams7 :: (A.DefaultValue a, A.DefaultValue b, A.DefaultValue c, A.DefaultValue d, A.DefaultValue e, A.DefaultValue f, A.DefaultValue g) => Text -> Text -> Text -> Text -> Text -> Text -> Text -> Params (a, b, c, d, e, f, g)
+defaultParams7 name1 name2 name3 name4 name5 name6 name7 =
   (,,,,,,) <$>
-  lenientParam name1 <*>
-  lenientParam name2 <*>
-  lenientParam name3 <*>
-  lenientParam name4 <*>
-  lenientParam name5 <*>
-  lenientParam name6 <*>
-  lenientParam name7
+  defaultParam name1 <*>
+  defaultParam name2 <*>
+  defaultParam name3 <*>
+  defaultParam name4 <*>
+  defaultParam name5 <*>
+  defaultParam name6 <*>
+  defaultParam name7
 

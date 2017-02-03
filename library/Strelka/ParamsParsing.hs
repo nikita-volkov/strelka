@@ -5,26 +5,26 @@ module Strelka.ParamsParsing
 (
   A.Params,
   A.param,
-  A.lenientParam,
-  -- * Multi-arity lenient param parser helpers
-  A.lenientParams1,
-  A.lenientParams2,
-  A.lenientParams3,
-  A.lenientParams4,
-  A.lenientParams5,
-  A.lenientParams6,
-  A.lenientParams7,
+  A.defaultParam,
+  -- * Multi-arity default param parser helpers
+  A.defaultParams1,
+  A.defaultParams2,
+  A.defaultParams3,
+  A.defaultParams4,
+  A.defaultParams5,
+  A.defaultParams6,
+  A.defaultParams7,
   -- * Value parsers
   B.Value,
   B.parser,
   B.matcher,
   B.list,
   B.maybe,
-  -- * Implicit lenient value parsers
-  C.LenientValue(..),
+  -- * Implicit default value parsers
+  C.DefaultValue(..),
 )
 where
 
 import qualified Strelka.ParamsParsing.Params as A
 import qualified Strelka.ParamsParsing.Value as B
-import qualified Strelka.ParamsParsing.LenientValue as C
+import qualified Strelka.ParamsParsing.DefaultValue as C

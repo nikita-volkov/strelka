@@ -10,10 +10,10 @@ module Strelka.RequestBodyParsing
   bytesParser,
   textParser,
   paramsParser,
-  -- * Implicit lenient parsers
-  LenientParser(..),
+  -- * Implicit default parsers
+  DefaultParser(..),
 )
 where
 
 import Strelka.RequestBodyParsing.Parser
-import Strelka.RequestBodyParsing.LenientParser
+import Strelka.RequestBodyParsing.DefaultParser

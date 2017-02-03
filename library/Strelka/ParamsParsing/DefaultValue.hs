@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
-module Strelka.ParamsParsing.LenientValue
+module Strelka.ParamsParsing.DefaultValue
 where
 
 import Strelka.Prelude
@@ -8,32 +8,32 @@ import qualified Strelka.ParamsParsing.Value as D
 
 
 {-|
-Provides a default lenient value parser.
+Provides a default default value parser.
 -}
-class LenientValue value where
-  lenientValue :: D.Value value
+class DefaultValue value where
+  defaultValue :: D.Value value
 
 {-|
-Uses 'D.maybe' over 'lenientValue'.
+Uses 'D.maybe' over 'defaultValue'.
 -}
-instance LenientValue a => LenientValue (Maybe a) where
-  {-# INLINE lenientValue #-}
-  lenientValue =
-    D.maybe lenientValue
+instance DefaultValue a => DefaultValue (Maybe a) where
+  {-# INLINE defaultValue #-}
+  defaultValue =
+    D.maybe defaultValue
 
 {-|
-Uses 'D.list' over 'lenientValue'.
+Uses 'D.list' over 'defaultValue'.
 -}
-instance LenientValue a => LenientValue [a] where
-  {-# INLINE lenientValue #-}
-  lenientValue =
-    D.list lenientValue
+instance DefaultValue a => DefaultValue [a] where
+  {-# INLINE defaultValue #-}
+  defaultValue =
+    D.list defaultValue
 
 
--- * Generated LenientValue instances
+-- * Generated DefaultValue instances
 -------------------------
 
-#define INSTANCE1(TYPE, FUNCTION) instance LenientValue TYPE where {{-# INLINE lenientValue #-}; lenientValue = FUNCTION;}
+#define INSTANCE1(TYPE, FUNCTION) instance DefaultValue TYPE where {{-# INLINE defaultValue #-}; defaultValue = FUNCTION;}
 #define INSTANCE2(TYPE) INSTANCE1(TYPE, D.parser B.lenientParser)
 
 INSTANCE1(Text, D.matcher Right)
