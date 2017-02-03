@@ -80,7 +80,7 @@ failure message =
   message
 
 {-|
-Lift Either, interpreting Left as a failureure.
+Lift Either, interpreting Left as a failure.
 -}
 liftEither :: Monad m => Either Text a -> Parser m a
 liftEither =
@@ -91,7 +91,7 @@ liftEither =
   return
 
 {-|
-Lift Maybe, interpreting Nothing as a failureure.
+Lift Maybe, interpreting Nothing as a failure.
 -}
 liftMaybe :: Monad m => Maybe a -> Parser m a
 liftMaybe =
@@ -125,7 +125,7 @@ segmentText =
       ExceptT (return (Left "No segments left"))
 
 {-|
-Consume the next segment if it matches the provided value and failure otherwise.
+Consume the next segment if it matches the provided value and fail otherwise.
 -}
 segmentIs :: Monad m => Text -> Parser m ()
 segmentIs expectedSegment =
