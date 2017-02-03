@@ -1,23 +1,19 @@
 module Strelka.RequestBodyParsing
 (
   Parser,
-  foldBytesWithTermination,
-  foldTextWithTermination,
+  Folded(..),
+  fail,
   foldBytes,
   foldText,
   buildFromBytes,
   buildFromText,
-  bytes,
-  lazyBytes,
-  bytesBuilder,
-  text,
-  lazyText,
-  textBuilder,
   bytesParser,
   textParser,
-  parserResult,
   paramsParser,
+  -- * Implicit lenient parsers
+  LenientParser(..),
 )
 where
 
 import Strelka.RequestBodyParsing.Parser
+import Strelka.RequestBodyParsing.LenientParser

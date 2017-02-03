@@ -304,4 +304,4 @@ consumeBody :: MonadIO m => P.Parser a -> Parser m a
 consumeBody (P.Parser consume) =
   do
     Request _ _ _ _ (InputStream getChunk) <- A.RequestParser ask
-    liftIO (consume getChunk)
+    liftIO (consume getChunk) >>= liftEither
