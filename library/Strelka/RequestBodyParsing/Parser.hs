@@ -47,19 +47,25 @@ instance Monad Parser where
           Right result -> case cont2 result of Parser def2 -> def2 input
           Left failure -> return (Left failure)
 
+{-|
+Result of a folding step.
+-}
 data Folded a =
   Unfinished !a |
   Finished !a |
   Failed Text
   deriving (Functor)
 
+{-|
+Fail with a message.
+-}
 {-# INLINE fail #-}
 fail :: Text -> Parser a
 fail message =
   Parser (\_ -> return (Left message))
 
 {-|
-Fold with support for early termination.
+Fold with support for early termination and failure.
 -}
 {-# INLINABLE foldBytes #-}
 foldBytes :: (a -> ByteString -> Folded a) -> a -> Parser a
@@ -81,7 +87,7 @@ foldBytes step init =
                   Failed failure -> return (Left failure)
 
 {-|
-Fold with support for early termination.
+Fold with support for early termination and failure.
 -}
 {-# INLINABLE foldText #-}
 foldText :: (a -> Text -> Folded a) -> a -> Parser a
@@ -111,6 +117,7 @@ foldText step init =
               return (Left ("UTF8 decoding failure: " <> fromString message))
 
 {- |
+Fold over the input chunks, projecting them into a monoid.
 Similar to "Foldable"\'s 'foldMap'.
 -}
 {-# INLINE buildFromBytes #-}
@@ -119,6 +126,7 @@ buildFromBytes proj =
   foldBytes (\l r -> Unfinished (mappend l (proj r))) mempty
 
 {- |
+Fold over the input chunks, projecting them into a monoid.
 Similar to "Foldable"\'s 'foldMap'.
 -}
 {-# INLINE buildFromText #-}
@@ -205,27 +213,27 @@ Lift an Attoparsec ByteString parser.
 
 Consumption is non-greedy and terminates when the parser is done.
 -}
-{-# INLINE bytesParser #-}
-bytesParser :: Data.Attoparsec.ByteString.Parser a -> Parser a
-bytesParser parser =
-  parserResult foldBytes (Data.Attoparsec.ByteString.Partial (Data.Attoparsec.ByteString.parse parser))
+{-# INLINE parseBytes #-}
+parseBytes :: Data.Attoparsec.ByteString.Parser a -> Parser a
+parseBytes parser =
+  processParserResult foldBytes (Data.Attoparsec.ByteString.Partial (Data.Attoparsec.ByteString.parse parser))
 
 {-|
 Lift an Attoparsec Text parser.
 
 Consumption is non-greedy and terminates when the parser is done.
 -}
-{-# INLINE textParser #-}
-textParser :: Data.Attoparsec.Text.Parser a -> Parser a
-textParser parser =
-  parserResult foldText (Data.Attoparsec.Text.Partial (Data.Attoparsec.Text.parse parser))
+{-# INLINE parseText #-}
+parseText :: Data.Attoparsec.Text.Parser a -> Parser a
+parseText parser =
+  processParserResult foldText (Data.Attoparsec.Text.Partial (Data.Attoparsec.Text.parse parser))
 
 {-|
 Given a chunk-specialized terminating fold implementation lifts a generic Attoparsec result.
 -}
-{-# INLINE parserResult #-}
-parserResult :: Monoid chunk => (forall a. (a -> chunk -> Folded a) -> a -> Parser a) -> Data.Attoparsec.Types.IResult chunk a -> Parser a
-parserResult fold result =
+{-# INLINE processParserResult #-}
+processParserResult :: Monoid chunk => (forall a. (a -> chunk -> Folded a) -> a -> Parser a) -> Data.Attoparsec.Types.IResult chunk a -> Parser a
+processParserResult fold result =
   fold step result >>= finalise
   where
     step result chunk =
@@ -246,9 +254,9 @@ parserResult fold result =
 {-|
 Parses the input stream as \"application/x-www-form-urlencoded\".
 -}
-{-# INLINE paramsParser #-}
-paramsParser :: A.Params a -> Parser a
-paramsParser parser =
+{-# INLINE parseParams #-}
+parseParams :: A.Params a -> Parser a
+parseParams parser =
   do
     queryBytes <- bytes
     case B.query queryBytes of

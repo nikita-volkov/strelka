@@ -24,7 +24,7 @@ class DefaultParser a where
 -------------------------
 
 #define INSTANCE(TYPE, FUNCTION) instance DefaultParser TYPE where {{-# INLINE defaultParser #-}; defaultParser = FUNCTION;}
-#define TEXT_PARSER_INSTANCE(TYPE) INSTANCE(TYPE, A.textParser B.lenientParser)
+#define TEXT_PARSER_INSTANCE(TYPE) INSTANCE(TYPE, A.parseText B.lenientParser)
 
 INSTANCE(Text, A.text)
 INSTANCE(E.Builder, A.textBuilder)

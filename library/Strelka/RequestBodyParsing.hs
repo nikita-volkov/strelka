@@ -7,9 +7,9 @@ module Strelka.RequestBodyParsing
   foldText,
   buildFromBytes,
   buildFromText,
-  bytesParser,
-  textParser,
-  paramsParser,
+  parseBytes,
+  parseText,
+  parseParams,
   -- * Implicit default parsers
   DefaultParser(..),
 )
