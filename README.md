@@ -1,10 +1,8 @@
 # Intro
 
-An HTTP server can be defined as a request parser, which produces a response,
-while managing some state.
+An HTTP server can be defined as a request parser, which produces a response, while managing the application state.
 As simple as that.
-This library exploits that fact to produce a very simple and flexible API,
-which can then be used on top of any server implementation.
+This library exploits that fact to produce a very simple and flexible API, which can be executed on top of any specific HTTP-server implementation (e.g., Warp).
 
 # The Why
 

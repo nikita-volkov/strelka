@@ -8,10 +8,10 @@ synopsis:
   A simple, flexible and composable web-router
 description:
   An HTTP server can be defined as a request parser, which produces a response,
-  while managing some state.
+  while managing the application state.
   As simple as that.
   This library exploits that fact to produce a very simple and flexible API,
-  which can then be used on top of any server implementation.
+  which can be executed on top of any specific HTTP-server implementation (e.g., Warp).
   .
   [Library Structure]
   The API is split into a set of DSLs targeted at solving specific problems in isolation,
