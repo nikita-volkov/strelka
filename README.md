@@ -20,9 +20,9 @@ Yet a question arises then: having already seen the textual parsers, which we al
 
 ```haskell
 do
-  consumeSegmentIfIs "user"
-  userID <- consumeSegment
-  ensureThatMethodIsGet
+  segmentIs "user"
+  userID <- segment
+  methodIsGet
   ...
 ```
 
@@ -71,28 +71,8 @@ main =
   C.strelkaServer 3000 (return . Right . runIdentity) route
   where
     route =
-      A.consumeSegmentIfIs "hi" *> hi <|>
-      A.consumeSegmentIfIs "bye" *> bye <|>
-      notFound
-      where
-        hi =
-          A.ensureThatAcceptsHTML *> html <|>
-          text
-          where
-            html =
-              pure (B.html "<h1>Hello world</h1>")
-            text =
-              pure (B.text "Hello world")
-        bye =
-          A.ensureThatAcceptsHTML *> html <|>
-          text
-          where
-            html =
-              pure (B.html "<h1>Goodbye world</h1>")
-            text =
-              pure (B.text "Goodbye world")
-        notFound =
-          pure (B.notFoundStatus <> B.text "Nothing's found")
+      A.segmentIs "hi" $> B.html "<h1>Hello world</h1>" <|>
+      pure B.notFoundStatus
 ```
 
 While this simple demo shows how easy it is to implement a simple web-server, there's too many things happening in the same module. This library was designed with separation of concerns in mind, and its every component facilitates that. So for a more correct and thorough demonstration its suggested to check out the following section.
