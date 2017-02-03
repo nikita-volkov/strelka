@@ -10,7 +10,7 @@ module Strelka.RequestParsing
   -- * Path Segments
   segment,
   segmentWithParser,
-  segmentWithLenientParser,
+  segmentText,
   segmentIs,
   noSegmentsLeft,
   -- * Params
@@ -110,10 +110,11 @@ trying =
 -------------------------
 
 {-|
-Consume the next segment of the path.
+Consume the next segment of the path as Text.
+If you need Text it's more efficient than using 'segment'.
 -}
-segment :: Monad m => Parser m Text
-segment =
+segmentText :: Monad m => Parser m Text
+segmentText =
   A.RequestParser $
   lift $
   StateT $
@@ -124,27 +125,36 @@ segment =
       ExceptT (return (Left "No segments left"))
 
 {-|
-Consume the next segment of the path with Attoparsec parser.
--}
-segmentWithParser :: Monad m => Q.Parser a -> Parser m a
-segmentWithParser parser =
-  segment >>= liftEither . first E.pack . Q.parseOnly parser
-
-{-|
-Consume the next segment of the path with an implicit lenient Attoparsec parser.
--}
-segmentWithLenientParser :: (Monad m, J.LenientParser a) => Parser m a
-segmentWithLenientParser =
-  segmentWithParser (J.lenientParser <* Q.endOfInput)
-
-{-|
 Consume the next segment if it matches the provided value and failure otherwise.
 -}
 segmentIs :: Monad m => Text -> Parser m ()
 segmentIs expectedSegment =
   do
-    segment <- segment
+    segment <- segmentText
     guard (segment == expectedSegment)
+
+{-|
+Consume the next segment of the path with an explicit Attoparsec parser.
+-}
+segmentWithParser :: Monad m => Q.Parser a -> Parser m a
+segmentWithParser parser =
+  A.RequestParser $
+  lift $
+  StateT $
+  \case
+    PathSegment segmentText : segmentsTail ->
+      case Q.parseOnly parser segmentText of
+        Right result -> return (result, segmentsTail)
+        Left failure -> ExceptT (return (Left ("Segment \"" <> segmentText <> "\" parsing failure: " <> E.pack failure)))
+    _ ->
+      ExceptT (return (Left "No segments left"))
+
+{-|
+Consume the next segment of the path with an implicit lenient Attoparsec parser.
+-}
+segment :: (Monad m, J.LenientParser a) => Parser m a
+segment =
+  segmentWithParser (J.lenientParser <* Q.endOfInput)
 
 {-|
 Fail if there's any path segments left unconsumed.
