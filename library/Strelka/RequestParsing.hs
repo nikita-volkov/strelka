@@ -5,8 +5,8 @@ module Strelka.RequestParsing
 (
   Parser,
   -- * Errors
-  failure,
-  trying,
+  fail,
+  try,
   -- * Path Segments
   segment,
   segmentWithParser,
@@ -43,7 +43,7 @@ module Strelka.RequestParsing
 )
 where
 
-import Strelka.Prelude
+import Strelka.Prelude hiding (fail, try)
 import Strelka.Core.Model
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Builder as C
@@ -78,8 +78,8 @@ type Parser =
 {-|
 Fail with a text message.
 -}
-failure :: Monad m => Text -> Parser m a
-failure message =
+fail :: Monad m => Text -> Parser m a
+fail message =
   A.RequestParser $
   lift $
   lift $
@@ -110,8 +110,8 @@ liftMaybe =
 {-|
 Try a parser, extracting the error as Either.
 -}
-trying :: Monad m => Parser m a -> Parser m (Either Text a)
-trying =
+try :: Monad m => Parser m a -> Parser m (Either Text a)
+try =
   tryError
 
 
@@ -245,8 +245,8 @@ queryWithParser parser =
     case I.query queryBytes of
       Right query -> case H.run parser (flip G.lookup query) of
         Right result -> return result
-        Left message -> failure ("Query params parsing error: " <> message)
-      Left message -> failure ("Query parsing error: " <> message)
+        Left message -> fail ("Query params parsing error: " <> message)
+      Left message -> fail ("Query parsing error: " <> message)
 
 
 -- * Methods
