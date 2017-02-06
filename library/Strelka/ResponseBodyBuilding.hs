@@ -6,10 +6,10 @@ module Strelka.ResponseBodyBuilding
   Builder,
   bytes,
   lazyBytes,
-  bytesBuilder,
+  lazyBytesBuilder,
   text,
   lazyText,
-  textBuilder,
+  lazyTextBuilder,
   actions,
 )
 where

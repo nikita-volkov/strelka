@@ -18,7 +18,7 @@ newtype Builder =
 
 instance IsString Builder where
   fromString string =
-    bytesBuilder (E.stringUtf8 string)
+    lazyBytesBuilder (E.stringUtf8 string)
 
 instance Monoid Builder where
   mempty =
@@ -46,8 +46,8 @@ lazyBytes x =
 {-|
 Lift a ByteString builder.
 -}
-bytesBuilder :: E.Builder -> Builder
-bytesBuilder =
+lazyBytesBuilder :: E.Builder -> Builder
+lazyBytesBuilder =
   lazyBytes . E.toLazyByteString
 
 {-|
@@ -76,8 +76,8 @@ lazyText text =
 {-|
 Lift a Text builder.
 -}
-textBuilder :: J.Builder -> Builder
-textBuilder =
+lazyTextBuilder :: J.Builder -> Builder
+lazyTextBuilder =
   lazyText . J.toLazyText
 
 {-|
