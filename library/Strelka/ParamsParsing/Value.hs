@@ -4,6 +4,7 @@ where
 import Strelka.Prelude hiding (maybe, list)
 import qualified Data.Attoparsec.Text as G
 import qualified Data.Text as E
+import qualified Attoparsec.Data.Implicit as B
 
 
 {-|
@@ -78,3 +79,7 @@ maybe :: Value a -> Value (Maybe a)
 maybe (Value (ReaderT singleValueFn)) =
   Value (ReaderT (traverse (singleValueFn . pure) . listToMaybe))
 
+{-# INLINE bool #-}
+bool :: Value Bool
+bool =
+  fromMaybe False <$> maybe (parser B.lenientParser)

@@ -41,7 +41,12 @@ INSTANCE1(String, D.string)
 -- | Encodes the input using UTF8.
 INSTANCE2(ByteString)
 INSTANCE2(Char)
-INSTANCE2(Bool)
+{-|
+Interprets all the following inputs case-insensitively:
+\"1\" or \"0\", \"true\" or \"false\", \"yes\" or \"no\", \"y\" or \"n\", \"t\" or \"f\".
+The absense of a value is interpreted as 'False'.
+-}
+INSTANCE1(Bool, D.bool)
 INSTANCE2(Integer)
 INSTANCE2(Int)
 INSTANCE2(Int8)
