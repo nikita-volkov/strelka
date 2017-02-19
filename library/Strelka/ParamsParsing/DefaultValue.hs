@@ -8,7 +8,7 @@ import qualified Strelka.ParamsParsing.Value as D
 
 
 {-|
-Provides a default default value parser.
+Provides a default value parser.
 -}
 class DefaultValue value where
   defaultValue :: D.Value value
