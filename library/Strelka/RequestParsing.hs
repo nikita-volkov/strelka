@@ -242,7 +242,7 @@ queryWithParser :: Monad m => H.Params a -> Parser m a
 queryWithParser parser =
   do
     Request _ _ (Query queryBytes) _ _ <- A.RequestParser ask
-    case I.query queryBytes of
+    case I.utf8Query queryBytes of
       Right query -> case H.run parser (flip G.lookup query) of
         Right result -> return result
         Left message -> fail ("Query params parsing error: " <> message)

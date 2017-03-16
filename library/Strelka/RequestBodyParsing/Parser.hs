@@ -259,7 +259,7 @@ parseParams :: A.Params a -> Parser a
 parseParams parser =
   do
     queryBytes <- bytes
-    case B.query queryBytes of
+    case B.utf8Query queryBytes of
       Right query -> case A.run parser (flip C.lookup query) of
         Right result -> return result
         Left message -> fail ("Query params parsing error: " <> message)
