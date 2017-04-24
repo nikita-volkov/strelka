@@ -4,7 +4,7 @@ where
 import Strelka.Prelude hiding (maybe, list)
 import qualified Data.Attoparsec.Text as G
 import qualified Data.Text as E
-import qualified Attoparsec.Data.Implicit as B
+import qualified Attoparsec.Data as B
 
 
 {-|

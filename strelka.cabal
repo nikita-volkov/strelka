@@ -1,7 +1,7 @@
 name:
   strelka
 version:
-  2
+  2.0.1
 category:
   Web
 synopsis:
@@ -81,7 +81,7 @@ library
     base64-bytestring == 1.*,
     -- parsing:
     attoparsec >= 0.13 && < 0.14,
-    attoparsec-data >= 0.1.1 && < 0.2,
+    attoparsec-data >= 1 && < 1.1,
     http-media >= 0.6.4 && < 0.7,
     url-decoders == 0.2.*,
     -- building:

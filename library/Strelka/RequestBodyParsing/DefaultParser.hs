@@ -4,7 +4,7 @@ where
 
 import Strelka.Prelude
 import qualified Strelka.RequestBodyParsing.Parser as A
-import qualified Attoparsec.Data.Implicit as B
+import qualified Attoparsec.Data as B
 import qualified Data.Text.Lazy as C
 import qualified Data.Text.Lazy.Builder as D
 import qualified Text.Builder as E

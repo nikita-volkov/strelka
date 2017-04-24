@@ -3,7 +3,7 @@ module Strelka.ParamsParsing.DefaultValue
 where
 
 import Strelka.Prelude
-import qualified Attoparsec.Data.Implicit as B
+import qualified Attoparsec.Data as B
 import qualified Strelka.ParamsParsing.Value as D
 
 

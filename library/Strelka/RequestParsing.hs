@@ -61,7 +61,7 @@ import qualified Strelka.HTTPAuthorizationParsing as D
 import qualified Strelka.ParamsParsing.Params as H
 import qualified Strelka.ParamsParsing as O
 import qualified URLDecoders as I
-import qualified Attoparsec.Data.Implicit as J
+import qualified Attoparsec.Data as J
 
 
 {-|
