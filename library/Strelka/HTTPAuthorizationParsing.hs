@@ -28,6 +28,7 @@ basicCredentials =
         adaptFailure failure =
           "UTF8 decoding failure. " <>
           (B.pack . show) failure
+    -- FIXME: How do we handle the absence of a password?
     splitText input =
       case B.span (/= ':') input of
         (prefix, remainder) ->
