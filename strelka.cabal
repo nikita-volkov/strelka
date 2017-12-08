@@ -85,7 +85,7 @@ library
     http-media >= 0.6.4 && < 0.7,
     url-decoders == 0.2.*,
     -- building:
-    text-builder == 0.4.*,
+    text-builder == 0.5.*,
     bytestring-tree-builder == 0.2.*,
     -- 
     time == 1.*,
