@@ -25,7 +25,7 @@ import Control.Monad.Trans.Writer.Strict as Exports (Writer, runWriter, execWrit
 -- mtl
 -------------------------
 import Control.Monad.Cont.Class as Exports
-import Control.Monad.Error.Class as Exports hiding (Error(..))
+import Control.Monad.Error.Class as Exports hiding (Error(..), liftEither)
 import Control.Monad.Reader.Class as Exports
 import Control.Monad.State.Class as Exports
 import Control.Monad.Writer.Class as Exports
