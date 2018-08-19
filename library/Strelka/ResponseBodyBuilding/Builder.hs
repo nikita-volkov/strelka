@@ -26,8 +26,8 @@ instance Monoid Builder where
   mappend (Builder cont1) (Builder cont2) =
     Builder (\feed flush -> cont1 feed (pure ()) *> cont2 feed flush)
 
-instance Semigroup Builder
-
+instance Semigroup Builder where
+  (<>) = mappend
 
 {-|
 Lift ByteString.

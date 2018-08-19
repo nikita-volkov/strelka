@@ -82,7 +82,7 @@ library
     -- parsing:
     attoparsec >= 0.13 && < 0.14,
     attoparsec-data >= 1 && < 1.1,
-    http-media >= 0.6.4 && < 0.7,
+    http-media >= 0.6.4 && < 0.8,
     url-decoders == 0.2.*,
     -- building:
     text-builder == 0.5.*,
