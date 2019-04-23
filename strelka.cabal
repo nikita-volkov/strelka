@@ -1,11 +1,7 @@
-name:
-  strelka
-version:
-  2.0.2.2
-category:
-  Web
-synopsis:
-  A simple, flexible and composable web-router
+name: strelka
+version: 2.0.2.2
+category: Web
+synopsis: A simple, flexible and composable web-router
 description:
   An HTTP server can be defined as a request parser, which produces a response,
   while managing the application state.
@@ -25,79 +21,57 @@ description:
   For a thorough demonstration of the library and suggested usage patterns
   check out the following project:
   <https://github.com/nikita-volkov/strelka-demo>.
-homepage:
-  https://github.com/nikita-volkov/strelka
-bug-reports:
-  https://github.com/nikita-volkov/strelka/issues 
-author:
-  Nikita Volkov <nikita.y.volkov@mail.ru>
-maintainer:
-  Nikita Volkov <nikita.y.volkov@mail.ru>
-copyright:
-  (c) 2016, Nikita Volkov
-license:
-  MIT
-license-file:
-  LICENSE
-build-type:
-  Simple
-cabal-version:
-  >=1.10
-
+homepage: https://github.com/nikita-volkov/strelka
+bug-reports: https://github.com/nikita-volkov/strelka/issues
+author: Nikita Volkov <nikita.y.volkov@mail.ru>
+maintainer: Nikita Volkov <nikita.y.volkov@mail.ru>
+copyright: (c) 2016, Nikita Volkov
+license: MIT
+license-file: LICENSE
+build-type: Simple
+cabal-version: >=1.10
 
 source-repository head
-  type:
-    git
-  location:
-    git://github.com/nikita-volkov/strelka.git
-
+  type: git
+  location: git://github.com/nikita-volkov/strelka.git
 
 library
-  hs-source-dirs:
-    library
+  hs-source-dirs: library
   exposed-modules:
-    Strelka.RequestParsing
-    Strelka.RequestBodyParsing
-    Strelka.ResponseBuilding
-    Strelka.ResponseBodyBuilding
     Strelka.ParamsParsing
+    Strelka.RequestBodyParsing
+    Strelka.RequestParsing
+    Strelka.ResponseBodyBuilding
+    Strelka.ResponseBuilding
   other-modules:
-    Strelka.Prelude
     Strelka.HTTPAuthorizationParsing
-    Strelka.ParamsParsing.Value
-    Strelka.ParamsParsing.Params
     Strelka.ParamsParsing.DefaultValue
-    Strelka.ResponseBodyBuilding.Builder
-    Strelka.RequestBodyParsing.Parser
+    Strelka.ParamsParsing.Params
+    Strelka.ParamsParsing.Value
+    Strelka.Prelude
     Strelka.RequestBodyParsing.DefaultParser
-  default-extensions:
-    Arrows, BangPatterns, ConstraintKinds, DataKinds, DefaultSignatures, DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric, DeriveTraversable, EmptyDataDecls, FlexibleContexts, FlexibleInstances, FunctionalDependencies, GADTs, GeneralizedNewtypeDeriving, LambdaCase, LiberalTypeSynonyms, MagicHash, MultiParamTypeClasses, MultiWayIf, NoImplicitPrelude, NoMonomorphismRestriction, OverloadedStrings, PatternGuards, ParallelListComp, QuasiQuotes, RankNTypes, RecordWildCards, ScopedTypeVariables, StandaloneDeriving, TemplateHaskell, TupleSections, TypeFamilies, TypeOperators, UnboxedTuples
-  default-language:
-    Haskell2010
+    Strelka.RequestBodyParsing.Parser
+    Strelka.ResponseBodyBuilding.Builder
+  default-extensions: Arrows, BangPatterns, ConstraintKinds, DataKinds, DefaultSignatures, DeriveDataTypeable, DeriveFoldable, DeriveFunctor, DeriveGeneric, DeriveTraversable, EmptyDataDecls, FlexibleContexts, FlexibleInstances, FunctionalDependencies, GADTs, GeneralizedNewtypeDeriving, LambdaCase, LiberalTypeSynonyms, MagicHash, MultiParamTypeClasses, MultiWayIf, NoImplicitPrelude, NoMonomorphismRestriction, OverloadedStrings, PatternGuards, ParallelListComp, QuasiQuotes, RankNTypes, RecordWildCards, ScopedTypeVariables, StandaloneDeriving, TemplateHaskell, TupleSections, TypeFamilies, TypeOperators, UnboxedTuples
+  default-language: Haskell2010
   build-depends:
-    -- 
-    strelka-core == 0.3.*,
-    -- codecs:
+    attoparsec >=0.13 && <0.14,
+    attoparsec-data >=1 && <1.1,
+    base <5,
+    base-prelude <2,
     base64-bytestring == 1.*,
-    -- parsing:
-    attoparsec >= 0.13 && < 0.14,
-    attoparsec-data >= 1 && < 1.1,
-    http-media >= 0.6.4 && < 0.9,
-    url-decoders == 0.2.*,
-    -- building:
-    text-builder == 0.6.*,
-    bytestring-tree-builder == 0.2.*,
-    -- 
-    time == 1.*,
-    scientific == 0.3.*,
-    bytestring >= 0.10.8 && < 0.11,
-    text >= 1 && < 2,
-    unordered-containers >= 0.2 && < 0.3,
-    hashable == 1.*,
-    -- 
     bifunctors == 5.*,
-    semigroups >= 0.18 && < 0.19,
+    bytestring >=0.10.8 && <0.11,
+    bytestring-tree-builder == 0.2.*,
+    hashable == 1.*,
+    http-media >=0.6.4 && <0.9,
     mtl == 2.*,
-    transformers >= 0.4 && < 0.6,
-    base-prelude < 2,
-    base < 5
+    scientific == 0.3.*,
+    semigroups >=0.18 && <0.19,
+    strelka-core == 0.3.*,
+    text >=1 && <2,
+    text-builder == 0.6.*,
+    time == 1.*,
+    transformers >=0.4 && <0.6,
+    unordered-containers >=0.2 && <0.3,
+    url-decoders == 0.2.*
