@@ -62,6 +62,10 @@ import Data.Hashable as Exports
 -------------------------
 import Data.Time as Exports
 
+-- uuid
+-------------------------
+import Data.UUID as Exports (UUID)
+
 -- Utils
 -------------------------
 import qualified Data.ByteString as ByteString

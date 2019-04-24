@@ -56,7 +56,7 @@ library
   default-language: Haskell2010
   build-depends:
     attoparsec >=0.13 && <0.14,
-    attoparsec-data >=1 && <1.1,
+    attoparsec-data >=1.0.4 && <1.1,
     base <5,
     base-prelude <2,
     base64-bytestring == 1.*,
@@ -74,4 +74,5 @@ library
     time == 1.*,
     transformers >=0.4 && <0.6,
     unordered-containers >=0.2 && <0.3,
-    url-decoders == 0.2.*
+    url-decoders == 0.2.*,
+    uuid >= 1.3 && < 2
