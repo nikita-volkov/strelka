@@ -88,6 +88,17 @@ movedPermanentlyStatus :: Builder
 movedPermanentlyStatus =
   status 301
 
+{- |
+Set the status code to @307@. Following is the description of this status.
+
+The request should be repeated with another URI; however, future requests should still use the original URI. In contrast to how 302 was historically implemented, the request method is not allowed to be changed when reissuing the original request. For example, a POST request should be repeated using another POST request.
+
+The requested resource has been assigned a new permanent URI and any future references to this resource SHOULD use one of the returned URIs. Clients with link editing capabilities ought to automatically re-link references to the Request-URI to one or more of the new references returned by the server, where possible. This response is cacheable unless indicated otherwise.
+-}
+temporaryRedirectStatus :: Builder
+temporaryRedirectStatus =
+  status 307
+
 -- ** 4xx Client Error Statuses
 -------------------------
 
@@ -216,3 +227,10 @@ Set the status code to 301, adding a @Location@ header with the specified URL.
 redirect :: ByteString -> Builder
 redirect url =
   movedPermanentlyStatus <> locationHeader url
+
+{- |
+Set the status code to 307, adding a @Location@ header with the specified URL.
+-}
+temporaryRedirect :: ByteString -> Builder
+temporaryRedirect url =
+  temporaryRedirectStatus <> locationHeader url
